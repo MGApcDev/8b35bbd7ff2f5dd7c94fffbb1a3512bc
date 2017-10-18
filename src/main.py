@@ -31,8 +31,17 @@ class WordBranch(object):
         self.cur_remain_dict = cur_remain_dict
 
 '''Functions'''
+
 def phrase_to_dict(phrase):
-    pass
+    phrase_dict = {}
+    for char in phrase:
+        if char == " ": # ignore spaces
+            continue
+        if char in phrase_dict:
+            phrase_dict[char] += 1
+        else:
+            phrase_dict[char] = 1
+    return phrase_dict
 
 def parse_words(phrase, filename):
     phrase_dict = phrase_to_dict(phrase)
