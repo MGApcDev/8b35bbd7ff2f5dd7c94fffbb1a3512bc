@@ -32,17 +32,17 @@ class WordBranch(object):
 
 '''Functions'''
 
-
+'''Check if character is invalid'''
 def invalid_char(char):
     if char == '\n' or char == ' ':
         return True
 
     return False
 
+'''Append word to abstract syntax tree'''
 def append_word_to_tree(root, word, remain_dict):
     pointer = root
     last_char = None
-
 
     valid_word = True
     # Check the word matches the remaining characters.
@@ -88,6 +88,7 @@ def phrase_to_dict(phrase):
             phrase_dict[char] = 1
     return phrase_dict
 
+'''Parse file to abstract syntax tree'''
 def parse_words(phrase, filename):
     phrase_dict = phrase_to_dict(phrase)
     root = LetterBranch(None, False, None, phrase_dict, {})
@@ -98,11 +99,15 @@ def parse_words(phrase, filename):
 
     return root
 
+'''Trace word from leaf branch to root'''
 def get_word(letter_branch):
-    str = ''
+    word_str = ''
     pointer = letter_branch
     while pointer.origin != None:
-        pass
+        word_str += pointer.letter
+        pointer = pointer.origin
+
+    return word_str[::-1]
 
 def append_to_solutions(branch_obj):
     pass
@@ -123,7 +128,7 @@ if __name__ == "__main__":
         phrase = args[1]
         wordlist_filename = args[2]
 
-        valid_words = parse_words(phrase, wordlist_filename)
+        letter_tree = parse_words(phrase, wordlist_filename)
         candidates = construct_tree(phrase, valid_words)
 
         solutions = find_solutions(candidates)
