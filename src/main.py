@@ -32,6 +32,7 @@ class WordBranch(object):
 
 '''Functions'''
 
+'''Convert string phrase to dictionary <char, int>, mapping letters to a count of them found in a given phrase'''
 def phrase_to_dict(phrase):
     phrase_dict = {}
     for char in phrase:
