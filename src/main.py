@@ -53,11 +53,14 @@ def output(solutions):
 '''Run'''
 if __name__ == "__main__":
     args = sys.argv
-    phrase = args[0]
-    wordlist_filename = args[1]
+    if len(args) == 3:
+        phrase = args[0]
+        wordlist_filename = args[1]
 
-    valid_words = parse_words(phrase, wordlist_filename)
-    candidates = construct_tree(phrase, valid_words)
+        valid_words = parse_words(phrase, wordlist_filename)
+        candidates = construct_tree(phrase, valid_words)
 
-    solutions = find_solutions(candidates)
-    output(solutions)
+        solutions = find_solutions(candidates)
+        output(solutions)
+    else:
+        print('Invalid arguments, expecting: "<string>" filename')
