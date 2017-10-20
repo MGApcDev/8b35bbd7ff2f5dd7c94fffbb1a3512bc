@@ -6,11 +6,11 @@ class LetterBranch(object):
     """LetterBranch represents a single branch in the tree of all the words in the loaded dictionary.
 
     Attributes:
-        letter      string             The letter for the place in the tree
-        is_word     bool               Whether there is a word ending in the LetterBranch object
-        origin      LetterBranch       The reference to the parent LetterBranch
-        remain_dict Object.<char, int> The remaining letters of the phrase from this point in the tree
-        used_dict   Object.<char, int> The used letters of the phrase for getting to this point in the tree
+        letter      string             The letter for the place in the tree.
+        is_word     bool               Whether there is a word ending in the LetterBranch object.
+        origin      LetterBranch       The reference to the parent LetterBranch.
+        remain_dict Object.<char, int> The remaining letters of the phrase from this point in the tree.
+        used_dict   Object.<char, int> The used letters of the phrase for getting to this point in the tree.
     """
     def __init__(self,  letter, is_word, origin, remain_dict, children):
         self.letter = letter
@@ -23,8 +23,8 @@ class WordBranch(object):
     """WordBranch represents a single branch in the tree of all the valid word combinations.
 
     Attributes:
-        letter_branch   LetterBranch       The reference to the LetterBranch that represents the word
-        cur_remain_dict Object.<char, int> The remaining letters of the phrase from this point in the tree
+        letter_branch   LetterBranch       The reference to the LetterBranch that represents the word.
+        cur_remain_dict Object.<char, int> The remaining letters of the phrase from this point in the tree.
     """
     def __init__(self,  letter_branch, cur_remain_dict):
         self.letter_branch = letter_branch
@@ -32,15 +32,30 @@ class WordBranch(object):
 
 '''Functions'''
 
-'''Check if character is invalid'''
 def invalid_char(char):
+    '''Check if character is invalid.
+
+    Args
+        char (string) The character to check.
+    Returns
+        (bool) The True if char should be ignored otherwise return False.
+    '''
     if char == '\n' or char == ' ':
         return True
 
     return False
 
-'''Append word to abstract syntax tree'''
-def append_word_to_tree(root, word, remain_dict):
+def append_word_to_tree(root, word, remain_dict_ref):
+    '''Append word to abstract syntax tree.
+
+    Args
+        root            (LetterBranch)       The root of the syntax tree.
+        word            (string)             The word to add.
+        remain_dict_ref (Object.<char, int>) The dictionary of the remaining available characters.
+    Returns
+        (bool) Return True if word was added otherwise return False.
+    '''
+    remain_dict = dict(remain_dict_ref) # Make copy of dictionary without reference
     pointer = root
     last_char = None
 
@@ -76,8 +91,14 @@ def append_word_to_tree(root, word, remain_dict):
 
     return True
 
-'''Convert string phrase to dictionary <char, int>, mapping letters to a count of them found in a given phrase'''
 def phrase_to_dict(phrase):
+    '''Convert string phrase to dictionary <char, int>, mapping letters to a count of them found in a given phrase.
+
+    Args
+        phrase (string) The string phrase to convert.
+    Returns
+        (Object.<char, int>) Returns a dictionary of characters and a count of their appearances in the phrase.
+    '''
     phrase_dict = {}
     for char in phrase:
         if char == " ": # ignore spaces
@@ -88,31 +109,46 @@ def phrase_to_dict(phrase):
             phrase_dict[char] = 1
     return phrase_dict
 
-'''Parse file to abstract syntax tree'''
 def parse_words(phrase, filename):
+    '''Parse file to abstract syntax tree.
+
+    Args
+        phrase   (string) The phrase to look for anagrams.
+        filename (string) The filename of the list of available words.
+    Returns
+        (LetterBranch) The root of the abstract syntax tree.
+    '''
     phrase_dict = phrase_to_dict(phrase)
     root = LetterBranch(None, False, None, phrase_dict, {})
 
     for line in open(filename):
-        remain_dict = dict(phrase_dict) # Make copy of dictionary without reference
-        append_word_to_tree(root, line, remain_dict)
+        append_word_to_tree(root, line, phrase_dict)
+        ###
+        # Create first level of word-tree
+        ###
 
     return root
 
-'''Trace word from leaf branch to root'''
 def get_word(letter_branch):
+    '''Trace word from leaf branch to root.
+
+    Args
+        letter_branch (LetterBranch) The leaf branch to trace for word.
+    Returns
+        (string) The full string of represented by the leaf.
+    '''
     word_str = ''
     pointer = letter_branch
     while pointer.origin != None:
         word_str += pointer.letter
         pointer = pointer.origin
 
-    return word_str[::-1]
+    return word_str[::-1] # Flip string
 
 def append_to_solutions(branch_obj):
     pass
 
-def construct_tree(phrase, valid_words):
+def construct_tree(phrase, letter_tree):
     pass
 
 def find_solutions(candidates):
@@ -129,7 +165,7 @@ if __name__ == "__main__":
         wordlist_filename = args[2]
 
         letter_tree = parse_words(phrase, wordlist_filename)
-        candidates = construct_tree(phrase, valid_words)
+        candidates = construct_tree(phrase, letter_tree)
 
         solutions = find_solutions(candidates)
         output(solutions)

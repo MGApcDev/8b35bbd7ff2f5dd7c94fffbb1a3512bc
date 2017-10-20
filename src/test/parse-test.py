@@ -30,19 +30,17 @@ def test_append_word_to_tree_multiple():
     phrase_dict = phrase_to_dict("apple of Edenmot kaes")
     root = LetterBranch(None, False, None, phrase_dict, {})
 
-    remain_dict = dict(phrase_dict)
+    remain_dict = phrase_dict
+
     ret = append_word_to_tree(root, "pale\n", remain_dict)
     assert ret == True # Check that word was added
 
-    remain_dict = dict(phrase_dict)
     ret = append_word_to_tree(root, "pakes\n", remain_dict)
     assert ret == True
 
-    remain_dict = dict(phrase_dict)
     ret = append_word_to_tree(root, "tom\n", remain_dict)
     assert ret == True
 
-    remain_dict = dict(phrase_dict)
     ret = append_word_to_tree(root, "applew", remain_dict) # Invalid word
     assert ret == False
 
