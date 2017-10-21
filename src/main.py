@@ -152,12 +152,32 @@ def get_word(letter_branch):
 def append_to_solutions(branch_obj):
     pass
 
+
+def rec_search(word_branch):
+    pass
+
 def construct_tree(root, letter_tree, words):
     for child in root.children:
-        pass
+        candidates = search_tree(child.remain_dict, letter_tree)
 
 def find_solutions(candidates):
     pass
+
+def search_tree(remain_dict, letter_branch):
+    rec_solutions = []
+    for char, count in remain_dict.items():
+        if count <= 0:
+            continue
+        if !(char in letter_branch.children):
+            continue
+        remain_copy = dict(remain_dict)
+        remain_copy[char] -= 1
+        rec_solutions.concat(search_tree(remain_copy, letter_branch.children[char]))
+    if letter_branch.is_word:
+        return rec_solutions.append(letter_branch)
+    else:
+        return rec_solutions
+
 
 def get_tree_root(phrase_dict, words):
     root_children = []
