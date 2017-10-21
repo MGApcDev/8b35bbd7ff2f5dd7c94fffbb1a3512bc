@@ -9,3 +9,4 @@ install:
   - pip install nose
 script:
   - nosetests -vd -w src test/parse-test.py
+  - nosetests -vd -w src test/tree-test.py
