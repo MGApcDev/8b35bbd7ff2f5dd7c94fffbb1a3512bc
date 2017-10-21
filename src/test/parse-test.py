@@ -33,16 +33,16 @@ def test_append_word_to_tree_multiple():
     remain_dict = phrase_dict
 
     ret = append_word_to_tree(root, "pale\n", remain_dict)
-    assert ret == True # Check that word was added
+    assert ret != None # Check that word was added
 
     ret = append_word_to_tree(root, "pakes\n", remain_dict)
-    assert ret == True
+    assert ret != None
 
     ret = append_word_to_tree(root, "tom\n", remain_dict)
-    assert ret == True
+    assert ret != None
 
     ret = append_word_to_tree(root, "applew", remain_dict) # Invalid word
-    assert ret == False
+    assert ret == None
 
     # Check tree structure
     assert root.children['p'] != None
@@ -70,8 +70,12 @@ def test_append_word_to_tree_multiple():
     assert root.children['p'].children['a'].children['k'].children['e'].children['s'].remain_dict['E'] == 1
 
 def test_parse_word():
-    tree = parse_words("poultry outwits ants", "data/wordlist")
+    phrase_dict = phrase_to_dict("poultry outwits ants")
 
+    tree, words = parse_words(phrase_dict, "data/wordlist")
     # Exclude invalid words.
     assert ('z' in tree.children) == False
     tree.children['t'].children['a'].children['i'].children['l'].is_word == True
+
+    for word in words:
+        assert word.is_word == True
