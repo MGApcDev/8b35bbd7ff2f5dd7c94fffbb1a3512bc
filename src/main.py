@@ -168,7 +168,7 @@ def search_tree(remain_dict, letter_branch):
     for char, count in remain_dict.items():
         if count <= 0:
             continue
-        if !(char in letter_branch.children):
+        if not char in letter_branch.children:
             continue
         remain_copy = dict(remain_dict)
         remain_copy[char] -= 1
