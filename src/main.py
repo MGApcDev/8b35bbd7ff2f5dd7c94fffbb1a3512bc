@@ -24,15 +24,17 @@ class WordBranch(object):
 
     Attributes:
         letter_branch (LetterBranch)  The reference to the LetterBranch that represents the word.
-        remain_dict   ({char => int}) The remaining letters of the phrase from this point in the tree.
         origin        (WordBranch)    The reference to the parent WordBranch.
         children      ([WordBranch])  Array of children WordBranches.
+        remain_dict   ({char => int}) The remaining letters of the phrase from this point in the tree.
+        remain_char   (int)           Number of characters remaining in the remain_dict.
     """
-    def __init__(self,  letter_branch, remain_dict, origin, children):
+    def __init__(self,  letter_branch, origin, children, remain_dict, remain_char):
         self.letter_branch = letter_branch
-        self.remain_dict = remain_dict
         self.origin = origin
         self.children = children
+        self.remain_dict = remain_dict
+        self.remain_char = remain_char
 
 '''Functions'''
 
@@ -49,7 +51,7 @@ def invalid_char(char):
 
     return False
 
-def append_word_to_tree(root, word, remain_dict_ref):
+def append_word_to_letter_tree(root, word, remain_dict_ref):
     '''Append word to abstract syntax tree.
 
     Args
@@ -104,14 +106,18 @@ def phrase_to_dict(phrase):
         ({char => int}) Returns a dictionary of characters and a count of their appearances in the phrase.
     '''
     phrase_dict = {}
+    phrase_len = 0
     for char in phrase:
-        if char == " ": # ignore spaces
+        if invalid_char(char): # ignore spaces
             continue
         if char in phrase_dict:
             phrase_dict[char] += 1
+            phrase_len += 1
         else:
             phrase_dict[char] = 1
-    return phrase_dict
+            phrase_len += 1
+
+    return phrase_dict, phrase_len
 
 def parse_words(phrase_dict, filename):
     '''Parse file to abstract syntax tree.
@@ -127,13 +133,13 @@ def parse_words(phrase_dict, filename):
     root = LetterBranch(None, False, None, phrase_dict, {})
 
     for line in open(filename):
-        word_ref = append_word_to_tree(root, line, phrase_dict)
+        word_ref = append_word_to_letter_tree(root, line, phrase_dict)
         if word_ref != None:
             words.append(word_ref)
 
     return (root, words)
 
-def get_word(letter_branch):
+def get_word_from_letter_branch(letter_branch):
     '''Trace word from leaf branch to root.
 
     Args
@@ -143,29 +149,32 @@ def get_word(letter_branch):
     '''
     word_str = ''
     pointer = letter_branch
-    while pointer.origin != None:
+    while pointer != None:
+        if pointer.letter == None:
+            break
         word_str += pointer.letter
         pointer = pointer.origin
 
     return word_str[::-1] # Flip string
 
-def append_to_solutions(branch_obj):
-    pass
+def construct_word_tree(word_branch, letter_tree):
+    anagrams = []
 
+    for child in word_branch.children:
+        candidates = search_letter_tree(child, letter_tree, child.remain_dict, child.remain_char)
+        if len(candidates) > 0:
+            for candidate in candidates:
+                if candidate.remain_char == 0:
+                    anagrams.append(candidate)
+            child.children = candidates
+            anagrams = anagrams + construct_word_tree(child, letter_tree)
 
-def rec_search(word_branch):
-    pass
+    return anagrams
 
-def construct_tree(root, letter_tree, words):
-    for child in root.children:
-        candidates = search_tree(child.remain_dict, letter_tree, root)
-
-def find_solutions(candidates):
-    pass
-
-def search_tree(remain_dict, letter_branch, origin):
+def search_letter_tree(origin, letter_branch, remain_dict, remain_char):
     rec_solutions = []
     for char, count in remain_dict.items():
+
         # print('looking at --> ', char, ' --- ', count)
         if count <= 0:
             continue
@@ -173,26 +182,32 @@ def search_tree(remain_dict, letter_branch, origin):
             continue
 
         # Decrement char in dict
-        remain_copy = dict(remain_dict)
-        remain_copy[char] -= 1
-        rec_solutions = rec_solutions + search_tree(remain_copy, letter_branch.children[char], origin)
+        remain_char_copy = remain_char
+        remain_char_copy -= 1
+
+        remain_dict_copy = dict(remain_dict)
+        remain_dict_copy[char] -= 1
+
+        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy)
     if letter_branch.is_word:
-        rec_solutions.append(WordBranch(letter_branch, dict(remain_dict), origin, []))
+        rec_solutions.append(WordBranch(letter_branch, origin, [], dict(remain_dict), remain_char))
         return rec_solutions
 
     return rec_solutions
 
-def get_tree_root(phrase_dict, words):
+def get_word_tree_root(phrase_len, phrase_dict, words):
     root_children = []
-    root = WordBranch(None, phrase_dict, None, [])
+    root = WordBranch(None, None, [], phrase_dict, phrase_len)
     for word in words:
-        root_children.append(WordBranch(word, dict(word.remain_dict), root, []))
+        # Note: optimize remain_char count
+        root_children.append(WordBranch(word, root, [], dict(word.remain_dict), phrase_len - len(get_word_from_letter_branch(word))))
 
     root.children = root_children
     return root
 
-def output(solutions):
-    pass
+def output(anagrams):
+    for anagram in anagrams:
+        pass
 
 '''Run'''
 if __name__ == "__main__":
@@ -201,13 +216,12 @@ if __name__ == "__main__":
         phrase = args[1]
         wordlist_filename = args[2]
 
-        phrase_dict = phrase_to_dict(phrase)
+        phrase_dict, phrase_len = phrase_to_dict(phrase)
 
         letter_tree, words = parse_words(phrase_dict, wordlist_filename)
-        tree_root = get_tree_root(phrase_dict, words)
-        candidates = construct_tree(tree_root, letter_tree, words)
+        word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
+        anagrams = construct_word_tree(word_tree, letter_tree)
 
-        solutions = find_solutions(candidates)
-        output(solutions)
+        output(anagrams)
     else:
         print('Invalid arguments, expecting: "<string>" filename')
