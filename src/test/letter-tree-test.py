@@ -19,3 +19,15 @@ def test_get_word_long():
     assert tail_leaf.is_word == True
     tail_str = get_word(tail_leaf)
     assert tail_str == 'tail'
+
+
+def test_returned_words():
+    phrase_dict = phrase_to_dict("poultry outwits anpts delamgrovesa")
+    tree, words = parse_words(phrase_dict, "data/sample")
+
+    app_leaf = tree.children['a'].children['p'].children['p']
+    assert app_leaf.is_word == True
+    app_str = get_word(app_leaf)
+    assert app_str == 'app'
+
+    assert len(words) == 5

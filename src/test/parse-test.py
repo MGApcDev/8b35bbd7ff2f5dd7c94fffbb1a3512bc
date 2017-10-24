@@ -69,6 +69,7 @@ def test_append_word_to_tree_multiple():
     assert root.children['p'].children['a'].children['k'].children['e'].children['s'].remain_dict['k'] == 0
     assert root.children['p'].children['a'].children['k'].children['e'].children['s'].remain_dict['E'] == 1
 
+
 def test_parse_word():
     phrase_dict = phrase_to_dict("poultry outwits ants")
 
@@ -79,3 +80,25 @@ def test_parse_word():
 
     for word in words:
         assert word.is_word == True
+
+def test_returned_word():
+    phrase_dict = phrase_to_dict("apple of Edenmot kaes")
+    root = LetterBranch(None, False, None, phrase_dict, {})
+
+    remain_dict = phrase_dict
+
+    ret = append_word_to_tree(root, "pale\n", remain_dict)
+    assert ret != None # Check that word was added
+    assert ret.is_word == True
+    assert ret.letter == 'e'
+
+    ret = append_word_to_tree(root, "pakes", remain_dict)
+    assert ret != None
+    assert ret.is_word == True
+    assert ret.letter == 's'
+
+    ret = append_word_to_tree(root, "tom\n", remain_dict)
+    assert ret != None
+
+    ret = append_word_to_tree(root, "applew", remain_dict) # Invalid word
+    assert ret == None

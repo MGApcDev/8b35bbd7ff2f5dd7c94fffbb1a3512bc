@@ -23,14 +23,14 @@ class WordBranch(object):
     """WordBranch represents a single branch in the tree of all the valid word combinations.
 
     Attributes:
-        letter_branch   (LetterBranch)  The reference to the LetterBranch that represents the word.
-        cur_remain_dict ({char => int}) The remaining letters of the phrase from this point in the tree.
-        origin          (WordBranch)    The reference to the parent WordBranch.
-        children        ([WordBranch])  Array of children WordBranches.
+        letter_branch (LetterBranch)  The reference to the LetterBranch that represents the word.
+        remain_dict   ({char => int}) The remaining letters of the phrase from this point in the tree.
+        origin        (WordBranch)    The reference to the parent WordBranch.
+        children      ([WordBranch])  Array of children WordBranches.
     """
-    def __init__(self,  letter_branch, cur_remain_dict, origin, children):
+    def __init__(self,  letter_branch, remain_dict, origin, children):
         self.letter_branch = letter_branch
-        self.cur_remain_dict = cur_remain_dict
+        self.remain_dict = remain_dict
         self.origin = origin
         self.children = children
 
@@ -158,26 +158,29 @@ def rec_search(word_branch):
 
 def construct_tree(root, letter_tree, words):
     for child in root.children:
-        candidates = search_tree(child.remain_dict, letter_tree)
+        candidates = search_tree(child.remain_dict, letter_tree, root)
 
 def find_solutions(candidates):
     pass
 
-def search_tree(remain_dict, letter_branch):
+def search_tree(remain_dict, letter_branch, origin):
     rec_solutions = []
     for char, count in remain_dict.items():
+        # print('looking at --> ', char, ' --- ', count)
         if count <= 0:
             continue
         if not char in letter_branch.children:
             continue
+
+        # Decrement char in dict
         remain_copy = dict(remain_dict)
         remain_copy[char] -= 1
-        rec_solutions.concat(search_tree(remain_copy, letter_branch.children[char]))
+        rec_solutions = rec_solutions + search_tree(remain_copy, letter_branch.children[char], origin)
     if letter_branch.is_word:
-        return rec_solutions.append(letter_branch)
-    else:
+        rec_solutions.append(WordBranch(letter_branch, dict(remain_dict), origin, []))
         return rec_solutions
 
+    return rec_solutions
 
 def get_tree_root(phrase_dict, words):
     root_children = []
