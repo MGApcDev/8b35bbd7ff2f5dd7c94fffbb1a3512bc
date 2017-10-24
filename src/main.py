@@ -36,6 +36,22 @@ class WordBranch(object):
         self.remain_dict = remain_dict
         self.remain_char = remain_char
 
+    def __str__(self):
+        output_str = ''
+        words = []
+        pointer = self
+        while pointer.origin != None:
+            words.append(pointer)
+            pointer = pointer.origin
+
+        words.reverse()
+        for word in words:
+            output_str += get_word_from_letter_branch(word.letter_branch) + ' '
+            # output_str += get_word_from_letter_branch(pointer.letter_branch)
+
+        # Remove last char --> ' '
+        print(output_str)
+
 '''Functions'''
 
 def invalid_char(char):
@@ -207,7 +223,7 @@ def get_word_tree_root(phrase_len, phrase_dict, words):
 
 def output(anagrams):
     for anagram in anagrams:
-        pass
+        print(str(anagram))
 
 '''Run'''
 if __name__ == "__main__":
