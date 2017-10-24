@@ -50,7 +50,7 @@ class WordBranch(object):
             # output_str += get_word_from_letter_branch(pointer.letter_branch)
 
         # Remove last char --> ' '
-        print(output_str)
+        return output_str[:-1]
 
 '''Functions'''
 
