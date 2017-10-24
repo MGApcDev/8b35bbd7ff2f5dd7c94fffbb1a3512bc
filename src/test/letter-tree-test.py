@@ -1,7 +1,7 @@
 from main import *
 
 def test_get_word_simple():
-    phrase_dict = phrase_to_dict("poultry outwits ants")
+    phrase_dict, phrase_len = phrase_to_dict("poultry outwits ants")
 
     tree, words = parse_words(phrase_dict, "data/wordlist")
     a_leaf = tree.children['a']
@@ -11,7 +11,7 @@ def test_get_word_simple():
     assert a_str == 'a'
 
 def test_get_word_long():
-    phrase_dict = phrase_to_dict("poultry outwits ants")
+    phrase_dict, phrase_len = phrase_to_dict("poultry outwits ants")
 
     tree, words = parse_words(phrase_dict, "data/wordlist")
     tail_leaf = tree.children['t'].children['a'].children['i'].children['l']
@@ -22,7 +22,7 @@ def test_get_word_long():
 
 
 def test_returned_words():
-    phrase_dict = phrase_to_dict("poultry outwits anpts delamgrovesa")
+    phrase_dict, phrase_len = phrase_to_dict("poultry outwits anpts delamgrovesa")
     tree, words = parse_words(phrase_dict, "data/sample")
 
     app_leaf = tree.children['a'].children['p'].children['p']
