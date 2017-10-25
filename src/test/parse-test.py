@@ -1,14 +1,14 @@
 from main import *
 
 def test_phrase_to_dict_simple():
-    phrase_dict = phrase_to_dict("abc")
+    phrase_dict, phrase_len = phrase_to_dict("abc")
     assert len(phrase_dict.keys()) == 3
     assert phrase_dict['a'] == 1
     assert phrase_dict['c'] == 1
     assert ("d" in phrase_dict) == False
 
 def test_phrase_to_dict_repeat_and_multiple_words_and_distinct_case():
-    phrase_dict = phrase_to_dict("apple of Eden")
+    phrase_dict, phrase_len = phrase_to_dict("apple of Eden")
     assert len(phrase_dict.keys()) == 9
     assert phrase_dict['a'] == 1
     assert phrase_dict['p'] == 2
@@ -17,9 +17,9 @@ def test_phrase_to_dict_repeat_and_multiple_words_and_distinct_case():
     assert (" " in phrase_dict) == False # ignore spaces
 
 def test_append_word_to_tree_single():
-    phrase_dict = phrase_to_dict("apple of Eden")
+    phrase_dict, phrase_len = phrase_to_dict("apple of Eden")
     root = LetterBranch(None, False, None, phrase_dict, {})
-    append_word_to_tree(root, "pale\n", phrase_dict)
+    append_word_to_letter_tree(root, "pale\n", phrase_dict)
 
     assert root.children['p'] != None
     assert root.children['p'].children['a'] != None
@@ -27,22 +27,22 @@ def test_append_word_to_tree_single():
     assert root.children['p'].children['a'].children['l'].children['e'] != None
 
 def test_append_word_to_tree_multiple():
-    phrase_dict = phrase_to_dict("apple of Edenmot kaes")
+    phrase_dict, phrase_len = phrase_to_dict("apple of Edenmot kaes")
     root = LetterBranch(None, False, None, phrase_dict, {})
 
     remain_dict = phrase_dict
 
-    ret = append_word_to_tree(root, "pale\n", remain_dict)
-    assert ret == True # Check that word was added
+    ret = append_word_to_letter_tree(root, "pale\n", remain_dict)
+    assert ret != None # Check that word was added
 
-    ret = append_word_to_tree(root, "pakes\n", remain_dict)
-    assert ret == True
+    ret = append_word_to_letter_tree(root, "pakes\n", remain_dict)
+    assert ret != None
 
-    ret = append_word_to_tree(root, "tom\n", remain_dict)
-    assert ret == True
+    ret = append_word_to_letter_tree(root, "tom\n", remain_dict)
+    assert ret != None
 
-    ret = append_word_to_tree(root, "applew", remain_dict) # Invalid word
-    assert ret == False
+    ret = append_word_to_letter_tree(root, "applew", remain_dict) # Invalid word
+    assert ret == None
 
     # Check tree structure
     assert root.children['p'] != None
@@ -69,9 +69,36 @@ def test_append_word_to_tree_multiple():
     assert root.children['p'].children['a'].children['k'].children['e'].children['s'].remain_dict['k'] == 0
     assert root.children['p'].children['a'].children['k'].children['e'].children['s'].remain_dict['E'] == 1
 
-def test_parse_word():
-    tree = parse_words("poultry outwits ants", "data/wordlist")
 
+def test_parse_word():
+    phrase_dict, phrase_len = phrase_to_dict("poultry outwits ants")
+
+    tree, words = parse_words(phrase_dict, "data/wordlist")
     # Exclude invalid words.
     assert ('z' in tree.children) == False
     tree.children['t'].children['a'].children['i'].children['l'].is_word == True
+
+    for word in words:
+        assert word.is_word == True
+
+def test_returned_word():
+    phrase_dict, phrase_len = phrase_to_dict("apple of Edenmot kaes")
+    root = LetterBranch(None, False, None, phrase_dict, {})
+
+    remain_dict = phrase_dict
+
+    ret = append_word_to_letter_tree(root, "pale\n", remain_dict)
+    assert ret != None # Check that word was added
+    assert ret.is_word == True
+    assert ret.letter == 'e'
+
+    ret = append_word_to_letter_tree(root, "pakes", remain_dict)
+    assert ret != None
+    assert ret.is_word == True
+    assert ret.letter == 's'
+
+    ret = append_word_to_letter_tree(root, "tom\n", remain_dict)
+    assert ret != None
+
+    ret = append_word_to_letter_tree(root, "applew", remain_dict) # Invalid word
+    assert ret == None
