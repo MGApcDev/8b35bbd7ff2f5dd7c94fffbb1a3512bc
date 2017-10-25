@@ -1,5 +1,6 @@
 '''Imports'''
 import sys
+import hashlib
 
 '''Classes'''
 class LetterBranch(object):
@@ -155,6 +156,13 @@ def parse_words(phrase_dict, filename):
 
     return (root, words)
 
+def parse_hashes(hash_filename):
+    hashes = {}
+    for line in open(hash_filename):
+        hashes[line[:-1]] = True
+
+    return hashes
+
 def get_word_from_letter_branch(letter_branch):
     '''Trace word from leaf branch to root.
 
@@ -173,7 +181,25 @@ def get_word_from_letter_branch(letter_branch):
 
     return word_str[::-1] # Flip string
 
-def construct_word_tree(word_branch, letter_tree):
+def valid_candidate(candidate, hash_algo, hashes):
+    hash_algo = hash_algo.lower()
+    candidate_str = str(candidate)
+    if hash_algo == "md5":
+        local_hash = (hashlib.md5(candidate_str.encode())).hexdigest()
+        # print(local_hash)
+        if (local_hash in hashes):
+            print('Found hash')
+            return True
+    elif hash_algo == 'sha1':
+        pass
+    elif hash_algo == "sha256":
+        pass
+    elif hash_algo == 'sha512':
+        pass
+
+    return False
+
+def construct_word_tree(word_branch, letter_tree, hash_algo, hashes):
     anagrams = []
 
     for child in word_branch.children:
@@ -181,9 +207,10 @@ def construct_word_tree(word_branch, letter_tree):
         if len(candidates) > 0:
             for candidate in candidates:
                 if candidate.remain_char == 0:
-                    anagrams.append(candidate)
+                    if valid_candidate(candidate, hash_algo, hashes):
+                        anagrams.append(candidate)
             child.children = candidates
-            anagrams = anagrams + construct_word_tree(child, letter_tree)
+            anagrams = anagrams + construct_word_tree(child, letter_tree, hash_algo, hashes)
 
     return anagrams
 
@@ -228,15 +255,20 @@ def output(anagrams):
 '''Run'''
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) == 3:
+    if len(args) == 5:
         phrase = args[1]
         wordlist_filename = args[2]
+        hash_algo = args[3]
+        hash_filename = args[4]
 
         phrase_dict, phrase_len = phrase_to_dict(phrase)
+        hashes = parse_hashes(hash_filename)
+
+        # print(hashes)
 
         letter_tree, words = parse_words(phrase_dict, wordlist_filename)
         word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
-        anagrams = construct_word_tree(word_tree, letter_tree)
+        anagrams = construct_word_tree(word_tree, letter_tree, hash_algo, hashes)
 
         output(anagrams)
     else:
