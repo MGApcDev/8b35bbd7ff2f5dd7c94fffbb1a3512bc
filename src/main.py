@@ -1,7 +1,7 @@
 '''Imports'''
 import sys
 import timeit
-from guppy import hpy
+# from guppy import hpy
 
 '''Classes'''
 class LetterBranch(object):
@@ -176,21 +176,23 @@ def construct_word_tree_start(word_branch, letter_tree):
     anagrams = []
 
     for child in word_branch.children:
-        anagrams = anagrams + construct_word_tree(child, letter_tree, child.letter_branch.remain_dict)
+        anagrams = anagrams + construct_word_tree(child, letter_tree, child.letter_branch.remain_dict, 1)
     return anagrams
 
-def construct_word_tree(word_branch, letter_tree, phrase_dict):
+def construct_word_tree(word_branch, letter_tree, phrase_dict, level):
     # print('Word')
     anagrams = []
+    if level > 2:
+        return anagrams
 
     copy_dict = dict(phrase_dict)
     # print('Search for -->', word_branch.remain_char)
     # print(copy_dict)
-    anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, letter_tree)
+    anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, letter_tree, level)
 
     return anagrams
 
-def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_tree):
+def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_tree, level):
     rec_solutions = []
     remain_char_copy = None
     remain_dict_copy = None
@@ -210,7 +212,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_t
         remain_dict_copy = dict(remain_dict)
         remain_dict_copy[char] -= 1
 
-        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, letter_tree)
+        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, letter_tree, level)
 
     # Free up memory
     remain_char_copy = None
@@ -221,7 +223,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_t
         if remain_char == 0:
             print(leaf)
         # origin.children.append(leaf)
-        rec_solutions = rec_solutions + construct_word_tree(leaf, letter_tree, remain_dict)
+        rec_solutions = rec_solutions + construct_word_tree(leaf, letter_tree, remain_dict, level + 1)
 
     return rec_solutions
 
@@ -245,7 +247,7 @@ if __name__ == "__main__":
     args = sys.argv
     if len(args) == 3:
         start_time = timeit.default_timer()
-        h = hpy()
+        # h = hpy()
         phrase = args[1]
         wordlist_filename = args[2]
 
@@ -253,13 +255,13 @@ if __name__ == "__main__":
 
         letter_tree, words = parse_words(phrase_dict, wordlist_filename)
         print(len(words))
-        x = h.heap()
-        print(x)
+        # x = h.heap()
+        # print(x)
 
         word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
         anagrams = construct_word_tree_start(word_tree, letter_tree)
-        x = h.heap()
-        print(x)
+        # x = h.heap()
+        # print(x)
 
         elapsed = timeit.default_timer() - start_time
         print('time --> ', elapsed)
