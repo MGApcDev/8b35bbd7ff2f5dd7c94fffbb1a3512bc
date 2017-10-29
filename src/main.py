@@ -1,5 +1,7 @@
 '''Imports'''
 import sys
+import timeit
+from guppy import hpy
 
 '''Classes'''
 class LetterBranch(object):
@@ -26,14 +28,12 @@ class WordBranch(object):
         letter_branch (LetterBranch)  The reference to the LetterBranch that represents the word.
         origin        (WordBranch)    The reference to the parent WordBranch.
         children      ([WordBranch])  Array of children WordBranches.
-        remain_dict   ({char => int}) The remaining letters of the phrase from this point in the tree.
         remain_char   (int)           Number of characters remaining in the remain_dict.
     """
-    def __init__(self,  letter_branch, origin, children, remain_dict, remain_char):
+    def __init__(self,  letter_branch, origin, children, remain_char):
         self.letter_branch = letter_branch
         self.origin = origin
         self.children = children
-        self.remain_dict = remain_dict
         self.remain_char = remain_char
 
     def __str__(self):
@@ -47,7 +47,6 @@ class WordBranch(object):
         words.reverse()
         for word in words:
             output_str += get_word_from_letter_branch(word.letter_branch) + ' '
-            # output_str += get_word_from_letter_branch(pointer.letter_branch)
 
         # Remove last char --> ' '
         return output_str[:-1]
@@ -173,22 +172,29 @@ def get_word_from_letter_branch(letter_branch):
 
     return word_str[::-1] # Flip string
 
-def construct_word_tree(word_branch, letter_tree):
+def construct_word_tree_start(word_branch, letter_tree):
     anagrams = []
 
     for child in word_branch.children:
-        candidates = search_letter_tree(child, letter_tree, child.remain_dict, child.remain_char)
-        if len(candidates) > 0:
-            for candidate in candidates:
-                if candidate.remain_char == 0:
-                    anagrams.append(candidate)
-            child.children = candidates
-            anagrams = anagrams + construct_word_tree(child, letter_tree)
+        anagrams = anagrams + construct_word_tree(child, letter_tree, child.letter_branch.remain_dict)
+    return anagrams
+
+def construct_word_tree(word_branch, letter_tree, phrase_dict):
+    # print('Word')
+    anagrams = []
+
+    copy_dict = dict(phrase_dict)
+    # print('Search for -->', word_branch.remain_char)
+    # print(copy_dict)
+    anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, letter_tree)
 
     return anagrams
 
-def search_letter_tree(origin, letter_branch, remain_dict, remain_char):
+def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_tree):
     rec_solutions = []
+    remain_char_copy = None
+    remain_dict_copy = None
+
     for char, count in remain_dict.items():
 
         # print('looking at --> ', char, ' --- ', count)
@@ -204,19 +210,28 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char):
         remain_dict_copy = dict(remain_dict)
         remain_dict_copy[char] -= 1
 
-        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy)
+        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, letter_tree)
+
+    # Free up memory
+    remain_char_copy = None
+    remain_dict_copy = None
+
     if letter_branch.is_word:
-        rec_solutions.append(WordBranch(letter_branch, origin, [], dict(remain_dict), remain_char))
-        return rec_solutions
+        leaf = WordBranch(letter_branch, origin, None, remain_char)
+        if remain_char == 0:
+            print(leaf)
+        # origin.children.append(leaf)
+        rec_solutions = rec_solutions + construct_word_tree(leaf, letter_tree, remain_dict)
 
     return rec_solutions
 
 def get_word_tree_root(phrase_len, phrase_dict, words):
     root_children = []
-    root = WordBranch(None, None, [], phrase_dict, phrase_len)
+    root = WordBranch(None, None, [], phrase_len)
     for word in words:
         # Note: optimize remain_char count
-        root_children.append(WordBranch(word, root, [], dict(word.remain_dict), phrase_len - len(get_word_from_letter_branch(word))))
+        # root_children.append(WordBranch(word, root, [], dict(word.remain_dict), phrase_len - len(get_word_from_letter_branch(word))))
+        root_children.append(WordBranch(word, root, [], phrase_len - len(get_word_from_letter_branch(word))))
 
     root.children = root_children
     return root
@@ -229,15 +244,26 @@ def output(anagrams):
 if __name__ == "__main__":
     args = sys.argv
     if len(args) == 3:
+        start_time = timeit.default_timer()
+        h = hpy()
         phrase = args[1]
         wordlist_filename = args[2]
 
         phrase_dict, phrase_len = phrase_to_dict(phrase)
 
         letter_tree, words = parse_words(phrase_dict, wordlist_filename)
-        word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
-        anagrams = construct_word_tree(word_tree, letter_tree)
+        print(len(words))
+        x = h.heap()
+        print(x)
 
-        output(anagrams)
+        word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
+        anagrams = construct_word_tree_start(word_tree, letter_tree)
+        x = h.heap()
+        print(x)
+
+        elapsed = timeit.default_timer() - start_time
+        print('time --> ', elapsed)
+
+        # output(anagrams)
     else:
         print('Invalid arguments, expecting: "<string>" filename')
