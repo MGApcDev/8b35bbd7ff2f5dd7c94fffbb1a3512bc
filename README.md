@@ -24,6 +24,8 @@ python src/lamahash.py anagrams.txt solutions-to-find.txt
 
 The program constructs and abstract syntax tree of the given dictonary of words.
 
+```Input phrase: "an dlamasa pple"```
+
 <div style="float:left">
     <ul>
         <li>and</li>
@@ -35,4 +37,9 @@ The program constructs and abstract syntax tree of the given dictonary of words.
 </div>
 <img src="https://i.imgur.com/nF1jzS0.png" width="200" style="float:right">
 
+
 And a solution tree that accounts for all anagrams while accounting for the letters available...
+<img src="https://i.imgur.com/gSJdExL.png" width="400" style="float:right">
+
+
+<img src="https://i.imgur.com/bCyFtQG.gif" height="100">
