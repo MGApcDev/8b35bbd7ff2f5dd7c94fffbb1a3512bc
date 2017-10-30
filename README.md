@@ -12,12 +12,14 @@ Small project to solve anamgras.
 
 # Basic usage
 ```bash
-python src/lamaandgroves.py "poultry outwits ants" some-dictionary.txt > anagrams.txt
-
-python src/lamahash.py anagrams.txt solutions-to-find.txt
-# Output:
-............
-.....
+$ python src/lamasandgroves.py "poultry outwits ants" some-dictionary.txt "md5" hashes-to-find.txt > anagrams.txt
+args {
+    0 =>           lamasandgroves.py,
+    1 => str:      phrase to find anagrams for,
+    2 => filename: file of words that could be in the anagram,
+    3 => str:      hash algorithm (md5, sha1, sha256, sha512),
+    4 => filename: file of hashes we should looking for
+}
 ```
 
 # Theory
