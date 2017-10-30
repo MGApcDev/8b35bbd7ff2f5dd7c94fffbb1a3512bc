@@ -25,17 +25,11 @@ python src/lamahash.py anagrams.txt solutions-to-find.txt
 The program constructs and abstract syntax tree of the given dictonary of words.
 
 ```Input phrase: "an dlamasa pple"```
+   
+| Word list        | Syntax Tree           |
+| ------------- |:-------------:|
+| <ul><li>and</li><li>app</li><li>apple</li><li>groves</li><li>lamas</li></ul> | <img src="https://i.imgur.com/nF1jzS0.png" width="200"> |
 
-<div style="float:left">
-    <ul>
-        <li>and</li>
-        <li>app</li>
-        <li>apple</li>
-        <li>groves</li>
-        <li>lamas</li>
-    </ul>
-</div>
-<img src="https://i.imgur.com/nF1jzS0.png" width="200" style="float:right">
 
 
 And a solution tree that accounts for all anagrams while accounting for the letters available...
