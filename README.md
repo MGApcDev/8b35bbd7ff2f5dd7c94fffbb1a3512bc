@@ -50,13 +50,11 @@ _1. Avoid computing branches that has the same problem_
 ```{uniqueDict => WordBranch}```
 - This branch will contain a list of other branches that have the same subproblem.
 
+- Looking at a example of 1.100 words, 35% of them are permutations of other words in the list, meaning we can skip that computation on every level.
+
+
 _2. Solve hashes as we go_
 - Using a dictionary of 99.000 words a small piece of text like "anagram" ends up having xx.xxx solutions
 - With this many solutions, either we have a lot of IO time or we use a lot of resources to keep all solutions in memory. Therefore we compute the hash of each candidate and check if it's one of the hashes we're looking for.
-
-_3. Solve combinations in levels_
-- Most sentences are composed of words longer than 1 character and computing combinations at higher levels in the tree takes exponentially more time. Therefore we want to compute the entire 1st level, then the entire 2nd level... kth level.
-- When all hashes are found, exit the program
-
 
 <img src="https://i.imgur.com/bCyFtQG.gif" height="100">
