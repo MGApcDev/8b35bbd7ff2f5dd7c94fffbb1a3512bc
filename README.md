@@ -42,7 +42,7 @@ For the give phrase ```"an dlamasa pple"``` we would produce this tree:
 
 To improve performance we implement a few heuristics that logically target the problem:
 
-_1. Avoid computing branches that has the same problem_
+_1. Avoid computing branches that has the same subproblem_
 - When going down branches we might end up with subproblems that are the same, so we know those branches will create the same sub-branches.
 <img src="https://i.imgur.com/DlpWHPm.png" width="400">
 
