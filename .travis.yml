@@ -8,6 +8,7 @@ python:
 install:
   - pip install nose
 script:
-  - nosetests -vd -w src test/parse-test.py
-  - nosetests -vd -w src test/letter-tree-test.py
-  - nosetests -vd -w src test/word-tree-test.py
+  # - nosetests -vd -w src test/parse-test.py
+  # - nosetests -vd -w src test/letter-tree-test.py
+  # - nosetests -vd -w src test/word-tree-test.py
+  - nosetests -vd -w src test/util-test.py

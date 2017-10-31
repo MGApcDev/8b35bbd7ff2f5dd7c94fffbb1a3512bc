@@ -22,6 +22,24 @@ class LetterBranch(object):
         self.remain_dict = remain_dict
         self.children = children
 
+    def __str__(self):
+        '''Trace word from leaf branch to root.
+
+        Args
+            letter_branch (LetterBranch) The leaf branch to trace for word.
+        Returns
+            (string) The full string of represented by the leaf.
+        '''
+        word_str = ''
+        pointer = self
+        while pointer != None:
+            if pointer.letter == None:
+                break
+            word_str += pointer.letter
+            pointer = pointer.origin
+
+        return word_str[::-1] # Flip string
+
 class WordBranch(object):
     """WordBranch represents a single branch in the tree of all the valid word combinations.
 
@@ -48,7 +66,7 @@ class WordBranch(object):
 
         words.reverse()
         for word in words:
-            output_str += get_word_from_letter_branch(word.letter_branch) + ' '
+            output_str += str(word.letter_branch) + ' '
 
         # Remove last char --> ' '
         return output_str[:-1]
@@ -170,63 +188,78 @@ def parse_words(phrase_dict, filename):
 
     return (root, words)
 
-def get_word_from_letter_branch(letter_branch):
-    '''Trace word from leaf branch to root.
+def dict_to_str(remain_dict):
+    dict_str = ""
+    for key, value in remain_dict.items():
+        for value in range(value):
+            dict_str += key
 
-    Args
-        letter_branch (LetterBranch) The leaf branch to trace for word.
-    Returns
-        (string) The full string of represented by the leaf.
-    '''
-    word_str = ''
-    pointer = letter_branch
-    while pointer != None:
-        if pointer.letter == None:
-            break
-        word_str += pointer.letter
-        pointer = pointer.origin
+    return dict_str
 
-    return word_str[::-1] # Flip string
+def get_candidates(word_branch, word_str):
+    if word_branch.origin == None:
+        return [word_str[:-1]]
 
-def construct_word_tree_start(word_branch, letter_tree, hash_obj):
-    anagrams = []
+    candidates = []
+    word_str = str(word_branch.letter_branch) + ' ' + word_str
+    if word_branch.references != None:
+        for ref in word_branch.references:
+            candidates = candidates + get_candidates(ref.origin, word_str)
 
-    for child in word_branch.children:
-        anagrams = anagrams + construct_word_tree(child, letter_tree, child.letter_branch.remain_dict, 1, hash_obj)
-    return anagrams
+    candidates = candidates + get_candidates(word_branch.origin, word_str)
+
+    return candidates
 
 def valid_candidate(candidate, hash_obj):
     hash_algo = hash_obj.algo
-    candidate_str = str(candidate)
-    if hash_algo == "md5":
-        local_hash = (hashlib.md5(candidate_str.encode())).hexdigest()
-        # print(local_hash)
-        if (local_hash in hash_obj.hashes):
-            return True
-    elif hash_algo == 'sha1':
-        pass
-    elif hash_algo == "sha256":
-        pass
-    elif hash_algo == 'sha512':
-        pass
+    candidates = get_candidates(candidate, "")
+    solutions = []
+    for candidate in candidates:
+        # candidate = candidate[::-1]
 
-    return False
+        # print('-', candidate, '-')
+        if hash_algo == "md5":
+            local_hash = (hashlib.md5(candidate.encode())).hexdigest()
+            if (local_hash in hash_obj.hashes):
+                solutions.append(candidate)
+        elif hash_algo == 'sha1':
+            pass
+        elif hash_algo == "sha256":
+            pass
+        elif hash_algo == 'sha512':
+            pass
+
+    return solutions
+
+hash_to_branch = {}
+
+def add_hash(remain_dict, word_branch):
+    global hash_to_branch
+    dict_str = dict_to_str(remain_dict)
+    if dict_str in hash_to_branch:
+        wb = hash_to_branch[dict_str]
+        if wb.references == None:
+            wb.references = []
+        wb.references.append(word_branch)
+        return False
+    else:
+        hash_to_branch[dict_str] = word_branch
+        return True
+
+def construct_word_tree_start(word_branch, letter_tree, hash_obj):
+    count = 0
+    for child in word_branch.children:
+        if add_hash(child.letter_branch.remain_dict, child):
+            construct_word_tree(child, letter_tree, child.letter_branch.remain_dict, 1, hash_obj)
 
 def construct_word_tree(word_branch, letter_tree, phrase_dict, level, hash_obj):
-    # print('Word')
-    anagrams = []
-    if level > 2:
-        return anagrams
+    if level > 3:
+        return []
 
     copy_dict = dict(phrase_dict)
-    # print('Search for -->', word_branch.remain_char)
-    # print(copy_dict)
-    anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, letter_tree, level, hash_obj)
-
-    return anagrams
+    search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, letter_tree, level, hash_obj)
 
 def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_tree, level, hash_obj):
-    rec_solutions = []
     remain_char_copy = None
     remain_dict_copy = None
 
@@ -245,7 +278,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_t
         remain_dict_copy = dict(remain_dict)
         remain_dict_copy[char] -= 1
 
-        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, letter_tree, level, hash_obj)
+        search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, letter_tree, level, hash_obj)
 
     # Free up memory
     remain_char_copy = None
@@ -254,15 +287,11 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_t
     if letter_branch.is_word:
         leaf = WordBranch(letter_branch, origin, None, remain_char, None)
         if remain_char == 0:
-            if valid_candidate(leaf, hash_obj):
-                # anagrams.append(leaf)
-                print(leaf)
+            solutions = valid_candidate(leaf, hash_obj)
+            for solution in solutions:
+                print((hashlib.md5(solution.encode())).hexdigest()," --> " , solution)
 
-            # origin.children.append(leaf)
-            # print(leaf)
-        rec_solutions = rec_solutions + construct_word_tree(leaf, letter_tree, remain_dict, level + 1, hash_obj)
-
-    return rec_solutions
+        construct_word_tree(leaf, letter_tree, remain_dict, level + 1, hash_obj)
 
 def get_word_tree_root(phrase_len, phrase_dict, words):
     root_children = []
@@ -270,7 +299,7 @@ def get_word_tree_root(phrase_len, phrase_dict, words):
     for word in words:
         # Note: optimize remain_char count
         # root_children.append(WordBranch(word, root, [], dict(word.remain_dict), phrase_len - len(get_word_from_letter_branch(word))))
-        root_children.append(WordBranch(word, root, [], phrase_len - len(get_word_from_letter_branch(word)), None))
+        root_children.append(WordBranch(word, root, [], phrase_len - len(str(word)), None))
 
     root.children = root_children
     return root
@@ -300,7 +329,7 @@ if __name__ == "__main__":
         # print(x)
 
         word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
-        anagrams = construct_word_tree_start(word_tree, letter_tree, hash_obj)
+        construct_word_tree_start(word_tree, letter_tree, hash_obj)
         # x = h.heap()
         # print(x)
 
