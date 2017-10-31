@@ -1,6 +1,7 @@
 '''Imports'''
 import sys
 import timeit
+import hashlib
 # from guppy import hpy
 
 '''Classes'''
@@ -30,11 +31,12 @@ class WordBranch(object):
         children      ([WordBranch])  Array of children WordBranches.
         remain_char   (int)           Number of characters remaining in the remain_dict.
     """
-    def __init__(self,  letter_branch, origin, children, remain_char):
+    def __init__(self,  letter_branch, origin, children, remain_char, references):
         self.letter_branch = letter_branch
         self.origin = origin
         self.children = children
         self.remain_char = remain_char
+        self.references = references
 
     def __str__(self):
         output_str = ''
@@ -50,6 +52,20 @@ class WordBranch(object):
 
         # Remove last char --> ' '
         return output_str[:-1]
+
+class Hash(object):
+    """docstring for Hash."""
+    def __init__(self,  hash_algo, hash_filename):
+        self.algo = hash_algo.lower()
+        self.hashes = self.parse_hashes(hash_filename)
+
+    def parse_hashes(self, hash_filename):
+        hashes = {}
+        for line in open(hash_filename):
+            hashes[line[:-1]] = True
+
+        return hashes
+
 
 '''Functions'''
 
@@ -172,14 +188,31 @@ def get_word_from_letter_branch(letter_branch):
 
     return word_str[::-1] # Flip string
 
-def construct_word_tree_start(word_branch, letter_tree):
+def construct_word_tree_start(word_branch, letter_tree, hash_obj):
     anagrams = []
 
     for child in word_branch.children:
-        anagrams = anagrams + construct_word_tree(child, letter_tree, child.letter_branch.remain_dict, 1)
+        anagrams = anagrams + construct_word_tree(child, letter_tree, child.letter_branch.remain_dict, 1, hash_obj)
     return anagrams
 
-def construct_word_tree(word_branch, letter_tree, phrase_dict, level):
+def valid_candidate(candidate, hash_obj):
+    hash_algo = hash_obj.algo
+    candidate_str = str(candidate)
+    if hash_algo == "md5":
+        local_hash = (hashlib.md5(candidate_str.encode())).hexdigest()
+        # print(local_hash)
+        if (local_hash in hash_obj.hashes):
+            return True
+    elif hash_algo == 'sha1':
+        pass
+    elif hash_algo == "sha256":
+        pass
+    elif hash_algo == 'sha512':
+        pass
+
+    return False
+
+def construct_word_tree(word_branch, letter_tree, phrase_dict, level, hash_obj):
     # print('Word')
     anagrams = []
     if level > 2:
@@ -188,11 +221,11 @@ def construct_word_tree(word_branch, letter_tree, phrase_dict, level):
     copy_dict = dict(phrase_dict)
     # print('Search for -->', word_branch.remain_char)
     # print(copy_dict)
-    anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, letter_tree, level)
+    anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, letter_tree, level, hash_obj)
 
     return anagrams
 
-def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_tree, level):
+def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_tree, level, hash_obj):
     rec_solutions = []
     remain_char_copy = None
     remain_dict_copy = None
@@ -212,28 +245,32 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, letter_t
         remain_dict_copy = dict(remain_dict)
         remain_dict_copy[char] -= 1
 
-        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, letter_tree, level)
+        rec_solutions = rec_solutions + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, letter_tree, level, hash_obj)
 
     # Free up memory
     remain_char_copy = None
     remain_dict_copy = None
 
     if letter_branch.is_word:
-        leaf = WordBranch(letter_branch, origin, None, remain_char)
+        leaf = WordBranch(letter_branch, origin, None, remain_char, None)
         if remain_char == 0:
-            print(leaf)
-        # origin.children.append(leaf)
-        rec_solutions = rec_solutions + construct_word_tree(leaf, letter_tree, remain_dict, level + 1)
+            if valid_candidate(leaf, hash_obj):
+                # anagrams.append(leaf)
+                print(leaf)
+
+            # origin.children.append(leaf)
+            # print(leaf)
+        rec_solutions = rec_solutions + construct_word_tree(leaf, letter_tree, remain_dict, level + 1, hash_obj)
 
     return rec_solutions
 
 def get_word_tree_root(phrase_len, phrase_dict, words):
     root_children = []
-    root = WordBranch(None, None, [], phrase_len)
+    root = WordBranch(None, None, [], phrase_len, None)
     for word in words:
         # Note: optimize remain_char count
         # root_children.append(WordBranch(word, root, [], dict(word.remain_dict), phrase_len - len(get_word_from_letter_branch(word))))
-        root_children.append(WordBranch(word, root, [], phrase_len - len(get_word_from_letter_branch(word))))
+        root_children.append(WordBranch(word, root, [], phrase_len - len(get_word_from_letter_branch(word)), None))
 
     root.children = root_children
     return root
@@ -245,13 +282,17 @@ def output(anagrams):
 '''Run'''
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) == 3:
+    if len(args) == 5:
         start_time = timeit.default_timer()
         # h = hpy()
         phrase = args[1]
         wordlist_filename = args[2]
+        hash_algo = args[3]
+        hash_filename = args[4]
+
 
         phrase_dict, phrase_len = phrase_to_dict(phrase)
+        hash_obj = Hash(hash_algo, hash_filename)
 
         letter_tree, words = parse_words(phrase_dict, wordlist_filename)
         print(len(words))
@@ -259,7 +300,7 @@ if __name__ == "__main__":
         # print(x)
 
         word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
-        anagrams = construct_word_tree_start(word_tree, letter_tree)
+        anagrams = construct_word_tree_start(word_tree, letter_tree, hash_obj)
         # x = h.heap()
         # print(x)
 
@@ -268,4 +309,4 @@ if __name__ == "__main__":
 
         # output(anagrams)
     else:
-        print('Invalid arguments, expecting: "<string>" filename')
+        print('Invalid arguments, expecting: "phrase" word_file "hash algo" hashes_file')
