@@ -7,7 +7,7 @@ def test_get_word_simple():
     a_leaf = tree.children['a']
 
     assert a_leaf.is_word == True
-    a_str = get_word_from_letter_branch(a_leaf)
+    a_str = str(a_leaf)
     assert a_str == 'a'
 
 def test_get_word_long():
@@ -17,7 +17,7 @@ def test_get_word_long():
     tail_leaf = tree.children['t'].children['a'].children['i'].children['l']
 
     assert tail_leaf.is_word == True
-    tail_str = get_word_from_letter_branch(tail_leaf)
+    tail_str = str(tail_leaf)
     assert tail_str == 'tail'
 
 
@@ -27,7 +27,7 @@ def test_returned_words():
 
     app_leaf = tree.children['a'].children['p'].children['p']
     assert app_leaf.is_word == True
-    app_str = get_word_from_letter_branch(app_leaf)
+    app_str = str(app_leaf)
     assert app_str == 'app'
 
     assert len(words) == 5
