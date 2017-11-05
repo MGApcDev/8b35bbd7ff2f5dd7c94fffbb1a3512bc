@@ -1,10 +1,22 @@
-from main import *
+import utils
+from letterbranch import LetterBranch
+from wordbranch import WordBranch
+from LamasAndGroves import *
+
+def get_sample(phrase):
+    phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
+    return LetterBranch.parse_words(phrase_dict, "data/sample")
+
+def get_sample2(phrase):
+    phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
+    return LetterBranch.parse_words(phrase_dict, "data/sample2")
 
 def test_search_tree():
-    phrase_dict, phrase_len = phrase_to_dict("poultry outwits anpts delamgrovesaan")
+    phrase = "poultry outwits anpts delamgrovesaan"
+    phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
+    letter_tree, words = get_sample(phrase)
 
-    letter_tree, words = parse_words(phrase_dict, "data/sample")
-    word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
+    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
 
     # Check I got the 'apple' word_branch.
     word = word_tree.children[2]
@@ -24,10 +36,10 @@ def test_search_tree():
 
 
 def test_get_word_tree_root():
-    phrase_dict, phrase_len = phrase_to_dict("poultry outwits anpts delamgrovesaan")
+    phrase_dict, phrase_len = utils.phrase_to_dict("poultry outwits anpts delamgrovesaan")
 
-    letter_tree, words = parse_words(phrase_dict, "data/sample")
-    word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
+    letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
+    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
 
     assert len(word_tree.children) == 5
 
@@ -44,10 +56,10 @@ def test_get_word_tree_root():
     assert word.remain_char == phrase_len - 5
 
 def test_check_tree_permutations():
-    phrase_dict, phrase_len = phrase_to_dict("and apple lamas")
+    phrase_dict, phrase_len = utils.phrase_to_dict("and apple lamas")
 
-    letter_tree, words = parse_words(phrase_dict, "data/sample")
-    word_tree = get_word_tree_root(phrase_len, phrase_dict, words)
+    letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
+    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
 
     assert len(word_tree.children) == 4 # 'app' will be in solutions, but will never complete a full anagram
 
