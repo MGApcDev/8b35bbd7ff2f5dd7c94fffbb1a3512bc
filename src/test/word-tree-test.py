@@ -36,7 +36,8 @@ def test_search_tree():
 
 
 def test_get_word_tree_root():
-    phrase_dict, phrase_len = utils.phrase_to_dict("poultry outwits anpts delamgrovesaan")
+    phrase = "poultry outwits anpts delamgrovesaan"
+    phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
 
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
     word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)

@@ -32,4 +32,4 @@ def test_returned_words():
     assert app_str == 'app'
 
     print(len(words))
-    assert len(words) == 8
+    assert len(words) == 5
