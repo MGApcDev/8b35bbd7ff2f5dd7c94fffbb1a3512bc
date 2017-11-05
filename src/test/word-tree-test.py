@@ -1,7 +1,7 @@
 import utils
 from letterbranch import LetterBranch
 from wordbranch import WordBranch
-from LamasAndGroves import *
+from lamasandgroves import *
 
 def get_sample(phrase):
     phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
