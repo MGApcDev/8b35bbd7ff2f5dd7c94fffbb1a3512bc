@@ -13,8 +13,8 @@ class HashProp(object):
         for line in open(hash_filename):
             hashes[line[:-1]] = True
 
-        print("Hashes")
-        print(hashes)
+        # print("Hashes")
+        # print(hashes)
 
         return hashes
 
