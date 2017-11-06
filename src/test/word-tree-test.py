@@ -1,90 +1,86 @@
 import utils
 from letterbranch import LetterBranch
 from wordbranch import WordBranch
+from hashprop import HashProp
 from lamasandgroves import *
 
-def get_sample(phrase):
-    phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
-    return LetterBranch.parse_words(phrase_dict, "data/sample")
-
-def get_sample2(phrase):
-    phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
-    return LetterBranch.parse_words(phrase_dict, "data/sample2")
-
 def test_search_tree():
-    phrase = "poultry outwits anpts delamgrovesaan"
+    phrase = "appleandlamas"
+    HashProp.set_hash_obj(HashProp("plain", "data/sample-to-find-3.txt"))
     phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
-    letter_tree, words = get_sample(phrase)
+    letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
+    LetterBranch.set_letter_tree(letter_tree)
 
     word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
 
     # Check I got the 'apple' word_branch.
     word = word_tree.children[2]
-    assert word.letter_branch.letter == 'e'
+    assert str(word.letter_branch) == 'apple'
 
-    apple_solutions = search_letter_tree(word, letter_tree, word.remain_dict, word.remain_char)
+    # apple_solutions = search_letter_tree(word, word.remain_char)
+    # anagrams = search_letter_tree(word_tree, letter_tree, word.letter_branch.remain_dict, word.remain_char, 1)
+    # print(anagrams)
 
-    assert len(apple_solutions) == 3 # valid: and, lamas, groves
-
-    lama_solution = apple_solutions[0]
-    lama_str = get_word_from_letter_branch(lama_solution.letter_branch)
-    assert lama_str == 'lamas'
-
-    lama_solutions = search_letter_tree(lama_solution, letter_tree, lama_solution.remain_dict, lama_solution.remain_char)
-
-    assert len(lama_solutions) == 2 # valid: and, groves
-
-
-def test_get_word_tree_root():
-    phrase = "poultry outwits anpts delamgrovesaan"
+def test_anagram_solutions_3():
+    HashProp.set_hash_obj(HashProp("plain", "data/sample-to-find-3.txt"))
+    # phrase = "grovesandl amas"
+    phrase = "and groves lamas"
     phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
-
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
+    LetterBranch.set_letter_tree(letter_tree)
+
     word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    anagrams = construct_word_tree_start(word_tree)
 
-    assert len(word_tree.children) == 5
-
-    assert word_tree.origin == None
-    assert word_tree.letter_branch == None
-    assert word_tree.remain_dict == phrase_dict
-
-    word = word_tree.children[2]
-    assert word.letter_branch.letter == 'e' # We got the apple word_branch
-
-    assert word.remain_dict['p'] == 0
-    assert word.remain_dict['l'] == 1
-    print(word.remain_char)
-    assert word.remain_char == phrase_len - 5
-
-def test_check_tree_permutations():
-    phrase_dict, phrase_len = utils.phrase_to_dict("and apple lamas")
-
-    letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
-    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
-
-    assert len(word_tree.children) == 4 # 'app' will be in solutions, but will never complete a full anagram
-
-    anagrams = construct_word_tree(word_tree, letter_tree)
-
+    print(anagrams)
     ''' Should produce 6 solutions:
-        and - apple - lamas
-        and - lamas - apple
-        apple - and - lamas
-        apple - lamas - and
-        lamas - and - apple
-        lamas - apple - and
+        and - groves - lamas
+        and - lamas - groves
+        groves - and - lamas
+        groves - lamas - and
+        lamas - and - groves
+        lamas - groves - and
     '''
     assert len(anagrams) == 6
+    # assert len(anagrams) == 100
 
-    # Check permutation
-    assert get_word_from_letter_branch(anagrams[0].origin.origin.letter_branch) == 'and'
-    assert get_word_from_letter_branch(anagrams[0].origin.letter_branch) == 'apple'
-    assert get_word_from_letter_branch(anagrams[0].letter_branch) == 'lamas'
 
-    assert get_word_from_letter_branch(anagrams[1].origin.origin.letter_branch) == 'and'
-    assert get_word_from_letter_branch(anagrams[1].origin.letter_branch) == 'lamas'
-    assert get_word_from_letter_branch(anagrams[1].letter_branch) == 'apple'
+def test_anagram_solutions_4():
+    HashProp.set_hash_obj(HashProp("plain", "data/sample-to-find-4.txt"))
+    phrase = "andapplegroveslamas"
+    phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
+    print(phrase_dict)
+    print(phrase_len)
 
-    assert get_word_from_letter_branch(anagrams[4].origin.origin.letter_branch) == 'lamas'
-    assert get_word_from_letter_branch(anagrams[4].origin.letter_branch) == 'and'
-    assert get_word_from_letter_branch(anagrams[4].letter_branch) == 'apple'
+    letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
+    LetterBranch.set_letter_tree(letter_tree)
+
+    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    anagrams = construct_word_tree_start(word_tree)
+
+    print(anagrams)
+    ''' Should produce 24 solutions:
+    '''
+    print(len(anagrams))
+    assert len(anagrams) == 24
+    # assert len(anagrams) == 100
+
+# def test_anagram_solutions_dup():
+#     HashProp.set_hash_obj(HashProp("plain", "data/sample-to-find-4.txt"))
+#     phrase = "andgrovesapple"
+#     phrase_dict, phrase_len = utils.phrase_to_dict(phrase)
+#     print(phrase_dict)
+#     print(phrase_len)
+#
+#     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
+#     LetterBranch.set_letter_tree(letter_tree)
+#
+#     word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+#     anagrams = construct_word_tree_start(word_tree)
+#
+#     print(anagrams)
+#     ''' Should produce 24 solutions:
+#     '''
+#     print(len(anagrams))
+#     assert len(anagrams) == 24
+    # assert len(anagrams) == 100

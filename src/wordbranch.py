@@ -36,6 +36,7 @@ class WordBranch(object):
         # Remove last char --> ' '
         return output_str[:-1]
 
+    hash_to_branch = {}
     def get_word_tree_root(phrase_len, phrase_dict, words):
         '''Construct the root object of the WordBranch tree.
         Args
@@ -45,11 +46,17 @@ class WordBranch(object):
         Returns
             (WordBranch) The root of WordBranch tree.
         '''
+        global hash_to_branch
+        hash_to_branch = {} # Reset hash to branch on new tree root
+
         root_children = []
         root = WordBranch(None, None, [], phrase_len, None, None)
         for word in words:
-            # Note: optimize remain_char count
             root_children.append(WordBranch(word, root, [], phrase_len - len(str(word)), None, None))
 
         root.children = root_children
         return root
+
+    def get_hash_to_branch():
+        global hash_to_branch
+        return hash_to_branch

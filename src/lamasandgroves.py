@@ -11,16 +11,28 @@ from hashprop import HashProp
 
 '''Functions'''
 
+def mark_branch(parent, child):
+    if parent.valid_children == None:
+        parent.valid_children = {}
+    if not (child in parent.valid_children):
+        parent.valid_children[id(child)] = child
+    else:
+        return False
+
+    return True
+
 def mark_path(word_branch):
     pointer = word_branch
     while pointer.origin != None:
         # Mark path of valid children
-        if pointer.origin.valid_children == None:
-            pointer.origin.valid_children = {}
-        if not (pointer in pointer.origin.valid_children):
-            pointer.origin.valid_children[id(pointer)] = pointer
-        else: # WB is already stored so we break
+        if not mark_branch(pointer.origin, pointer):
             break
+        # if pointer.origin.valid_children == None:
+        #     pointer.origin.valid_children = {}
+        # if not (pointer in pointer.origin.valid_children):
+        #     pointer.origin.valid_children[id(pointer)] = pointer
+        # else: # WB is already stored so we break
+        #     break
         pointer = pointer.origin
 
 def get_candidates(word_branch, word_str):
@@ -75,7 +87,7 @@ def valid_candidates(candidate):
     # candidates = [str(candidate)]
     solutions = []
     for candidate in candidates:
-        print("Trying to validate down") # DEBUGthis
+        # print("Trying to validate down") # DEBUGthis
         if valid_candidate(candidate):
             solutions.append(candidate)
         # candidate = candidate[::-1]
@@ -83,7 +95,6 @@ def valid_candidates(candidate):
 
     return solutions
 
-hash_to_branch = {}
 def add_hash(remain_dict, word_branch):
     '''Get a unique representation of remain_dict and add reference WordBranch.
     Args
@@ -92,37 +103,68 @@ def add_hash(remain_dict, word_branch):
     Returns
         (bool) Return True if the remain_dict was a new entry in the dictionary.
     '''
-    global hash_to_branch
+    hash_to_branch = WordBranch.get_hash_to_branch()
 
     dict_str = utils.dict_to_str(remain_dict)
     # print("--> ", dict_str)
     if dict_str in hash_to_branch:
         wb = hash_to_branch[dict_str]
+        print('Found -->', str(word_branch), '{w. remain:', dict_str, "} - ", id(wb))
         if wb.references == None:
             wb.references = []
         wb.references.append(word_branch)
         # Search for previously calculated solutions.
-        search_solved_anagrams(str(word_branch), wb)
 
-        return False
+        print("Begin search ------------------")
+        print("comp - ", str(word_branch), " --- ", str(word_branch.letter_branch))
+        val = (False, search_solved_anagrams(str(word_branch), wb, word_branch, []))
+        # return False, search_solved_anagrams(str(word_branch), wb, word_branch, [])
+        print("End search ------------------")
+        return val
+
     else:
+        print("Adding -->", str(word_branch), '{w. remain:', dict_str, "} - ", id(word_branch))
         hash_to_branch[dict_str] = word_branch
-        return True
+        return True, []
 
-def search_solved_anagrams(anagram_str, wb_up):
+def search_solved_anagrams(anagram_str, wb_up, origin, visited_branches):
+    anagrams = []
+
+
+    # print("building:", anagram_str, " child: ", len(wb_up.valid_children))
+
     if wb_up.valid_children == None:
+        print("building:", anagram_str, " child: 0, me: " , id(wb_up))
         return []
+    else:
+        print("building:", anagram_str, " child: ", len(wb_up.valid_children))
+
     for hashcode, word_branch in wb_up.valid_children.items():
         new_anagram_str = anagram_str + ' ' + str(word_branch.letter_branch)
+        visited_branches.append(word_branch)
         if word_branch.remain_char == 0:
-            print("Trying to validate up") # DEBUGthis
+            # print("Trying to validate up") # DEBUGthis
             if valid_candidate(new_anagram_str):
-                print("Found solve from leaf searching")
+                mark_path(origin)
+                # print("Marking branches",visited_branches)
+
+                # visited_branches.reverse()
+                for index, visited_branch in enumerate(visited_branches):
+                    if index == 0:
+                        mark_branch(origin, visited_branch)
+                        print("mark origin..", len(visited_branches), "from: ", str(origin.letter_branch),"to: ", str(visited_branch.letter_branch))
+                    else:
+                        print("mark ", len(visited_branches), "from: ", str(visited_branches[index - 1].letter_branch),"to: ", str(visited_branch.letter_branch))
+                        mark_branch(visited_branches[index - 1], visited_branch)
+                print("---- LEAF SOLUTION ---")
+                print("Origin path: ", str(word_branch))
                 print((hashlib.md5(new_anagram_str.encode())).hexdigest()," --> " , new_anagram_str)
                 return [new_anagram_str]
         else:
-            search_solved_anagrams(new_anagram_str, word_branch)
+            # visited_branches.append(word_branch)
+            anagrams = anagrams + search_solved_anagrams(new_anagram_str, word_branch, origin, visited_branches)
 
+    return anagrams
 
 def construct_word_tree_start(word_branch):
     '''Starting level of WordBranch tree to construct tree.
@@ -133,7 +175,7 @@ def construct_word_tree_start(word_branch):
 
     count = 0
     for child in word_branch.children:
-        print('Working on --> ', str(child.letter_branch)) # DEBUGthis
+        # print('Working on --> ', str(child.letter_branch)) # DEBUGthis
         # if add_hash(child.letter_branch.remain_dict, child):
 
         anagrams = anagrams + construct_word_tree(child, child.letter_branch.remain_dict, 1)
@@ -148,15 +190,25 @@ def construct_word_tree(word_branch, phrase_dict, level):
         phrase_dict ({char => int}) The remaining letters of the phrase from this point in the tree.
         level       (int)           The level depth of WordBranch tree.
     '''
+
+    temp = ''
+    for index in range(level):
+        temp += '--'
+    print(level, temp + '-->', str(word_branch.letter_branch))
     anagrams = []
 
-    if level > 2:
+    if level > 3:
         return []
 
     copy_dict = dict(phrase_dict)
-    if add_hash(copy_dict, word_branch):
+    state, stored_anagrams = add_hash(copy_dict, word_branch)
+    anagrams = anagrams + stored_anagrams
+
+    if state:
         letter_tree = LetterBranch.get_letter_tree()
         anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, level)
+    # else:
+    #     print('  ' + temp + '-->', level , '-', str(word_branch.letter_branch))
 
     return anagrams
 
@@ -181,7 +233,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
         if not char in letter_branch.children:
             continue
 
-        # Decrement char in dict
+        # Decrement char in dict.
         remain_char_copy = remain_char
         remain_char_copy -= 1
 
@@ -190,7 +242,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
 
         anagrams = anagrams + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, level)
 
-    # Free up memory
+    # Free up memory.
     remain_char_copy = None
     remain_dict_copy = None
 
@@ -200,10 +252,13 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
             mark_path(leaf)
             solutions = valid_candidates(leaf)
             for solution in solutions:
-                print("Found solution from root searching")
+                print("----- ROOT SOLUTION --------")
                 print((hashlib.md5(solution.encode())).hexdigest()," --> " , solution)
+
+            # print("sol ->" , solutions)
             anagrams = anagrams + solutions
-        anagrams = anagrams + construct_word_tree(leaf, remain_dict, level + 1)
+        else:
+            anagrams = anagrams + construct_word_tree(leaf, remain_dict, level + 1)
 
     return anagrams
 

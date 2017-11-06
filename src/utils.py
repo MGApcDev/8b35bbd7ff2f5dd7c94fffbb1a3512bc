@@ -32,8 +32,6 @@ def phrase_to_dict(phrase):
 
     return phrase_dict, phrase_len
 
-
-
 def dict_to_str(remain_dict):
     '''Parse a dictionary to string representation, e.g. {p:1, f:0, t:3} => pttt.
        Note: Ordering the string doesn't matter.
@@ -47,4 +45,5 @@ def dict_to_str(remain_dict):
         for value in range(value):
             dict_str += key
 
+    # return ''.join(sorted(dict_str))
     return dict_str
