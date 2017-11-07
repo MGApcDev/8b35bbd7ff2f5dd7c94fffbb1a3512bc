@@ -31,7 +31,7 @@ def mark_path(word_branch):
 
         pointer = pointer.origin
 
-def add_hash(remain_dict, word_branch, debug):
+def add_hash(remain_dict, word_branch):
     '''Get a unique representation of remain_dict and add reference WordBranch.
     Args
         remain_dict ({char => int}) The remaining letters of the phrase from this point in the tree.
@@ -44,20 +44,83 @@ def add_hash(remain_dict, word_branch, debug):
     dict_str = utils.dict_to_str(remain_dict)
     if dict_str in hash_to_branch:
         wb = hash_to_branch[dict_str]
-        if debug:
-            print('Found -->', str(word_branch), '{w. remain:', dict_str, "} - ", id(wb), "as", str(wb))
         if wb.valid_children != None and len(wb.valid_children) > 0:
 
             mark_path(word_branch)
             word_branch.valid_children = wb.valid_children
 
-        return False, []
-
+        return False
     else:
-        if debug:
-            print("Adding -->", str(word_branch), '{w. remain:', dict_str, "} - ", id(word_branch))
         hash_to_branch[dict_str] = word_branch
-        return True, []
+        return True
+
+def construct_word_tree_start(word_branch):
+    '''Starting level of WordBranch tree to construct tree.
+    Args
+        word_branch (WordBranch)   The root of WordBranch tree.
+    '''
+    for child in word_branch.children:
+        construct_word_tree(child, child.letter_branch.remain_dict)
+
+def construct_word_tree(word_branch, phrase_dict, level = 1):
+    '''Recursive function to construct WordBranch tree.
+    Args
+        word_branch (WordBranch)    The root of WordBranch tree.
+        phrase_dict ({char => int}) The remaining letters of the phrase from this point in the tree.
+        level       (int)           The level depth of WordBranch tree.
+    '''
+    copy_dict = dict(phrase_dict)
+
+    if add_hash(copy_dict, word_branch):
+        letter_tree = LetterBranch.get_letter_tree()
+        search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, level)
+
+def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
+    '''Recursive function to search for valid words from this point in the tree.
+    Args
+        origin        (WordBranch)    The origin WordBranch we're doing the recursive search from
+        letter_branch (LetterBranch)  The current LetterBranch we're looking at.
+        remain_dict   ({char => int}) The remaining letters of the phrase from this point in the search.
+        remain_char   (int)           Count of the remaining letters in the remain_dict.
+        level         (int)           The level depth of WordBranch tree.
+    '''
+    remain_char_copy = None
+    remain_dict_copy = None
+
+    for char, count in remain_dict.items():
+
+        if count <= 0:
+            continue
+        if not char in letter_branch.children:
+            continue
+
+        # Decrement char in dict.
+        remain_char_copy = remain_char
+        remain_char_copy -= 1
+
+        remain_dict_copy = dict(remain_dict)
+        remain_dict_copy[char] -= 1
+
+        search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, level)
+
+    # Free up memory.
+    remain_char_copy = None
+    remain_dict_copy = None
+
+    if letter_branch.is_word:
+        leaf = WordBranch(letter_branch, origin, None, remain_char, None, None)
+        if remain_char == 0:
+            mark_path(leaf)
+        else:
+            construct_word_tree(leaf, remain_dict, level + 1)
+
+def search_solved_anagrams_start(word_tree):
+    anagrams = []
+    for word in word_tree.children:
+        print("Searching in: ", str(word))
+        anagrams = anagrams + search_solved_anagrams(str(word), word)
+
+    return anagrams
 
 def search_solved_anagrams(anagram_str, wb_up, level = 1):
     anagrams = []
@@ -76,87 +139,6 @@ def search_solved_anagrams(anagram_str, wb_up, level = 1):
                 return [new_anagram_str]
         else:
             anagrams = anagrams + search_solved_anagrams(new_anagram_str, word_branch, level + 1)
-
-    return anagrams
-
-def construct_word_tree_start(word_branch):
-    '''Starting level of WordBranch tree to construct tree.
-    Args
-        word_branch (WordBranch)   The root of WordBranch tree.
-    '''
-    anagrams = []
-
-    count = 0
-    for child in word_branch.children:
-        anagrams = anagrams + construct_word_tree(child, child.letter_branch.remain_dict, 1)
-
-    return anagrams
-
-def construct_word_tree(word_branch, phrase_dict, level, debug = False):
-    '''Recursive function to construct WordBranch tree.
-    Args
-        word_branch (WordBranch)    The root of WordBranch tree.
-        phrase_dict ({char => int}) The remaining letters of the phrase from this point in the tree.
-        level       (int)           The level depth of WordBranch tree.
-    '''
-
-    if debug:
-        temp = ''
-        for index in range(level):
-            temp += '--'
-        print(level, temp + '-->', str(word_branch.letter_branch))
-
-    anagrams = []
-
-    copy_dict = dict(phrase_dict)
-    state, stored_anagrams = add_hash(copy_dict, word_branch, debug)
-    anagrams = anagrams + stored_anagrams
-
-    if state:
-        letter_tree = LetterBranch.get_letter_tree()
-        anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, level, debug)
-
-    return anagrams
-
-def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level, debug):
-    '''Recursive function to search for valid words from this point in the tree.
-    Args
-        origin        (WordBranch)    The origin WordBranch we're doing the recursive search from
-        letter_branch (LetterBranch)  The current LetterBranch we're looking at.
-        remain_dict   ({char => int}) The remaining letters of the phrase from this point in the search.
-        remain_char   (int)           Count of the remaining letters in the remain_dict.
-        level         (int)           The level depth of WordBranch tree.
-    '''
-    anagrams = []
-    remain_char_copy = None
-    remain_dict_copy = None
-
-    for char, count in remain_dict.items():
-
-        if count <= 0:
-            continue
-        if not char in letter_branch.children:
-            continue
-
-        # Decrement char in dict.
-        remain_char_copy = remain_char
-        remain_char_copy -= 1
-
-        remain_dict_copy = dict(remain_dict)
-        remain_dict_copy[char] -= 1
-
-        anagrams = anagrams + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, level, debug)
-
-    # Free up memory.
-    remain_char_copy = None
-    remain_dict_copy = None
-
-    if letter_branch.is_word:
-        leaf = WordBranch(letter_branch, origin, None, remain_char, None, None)
-        if remain_char == 0:
-            mark_path(leaf)
-        else:
-            anagrams = anagrams + construct_word_tree(leaf, remain_dict, level + 1, debug)
 
     return anagrams
 
@@ -181,18 +163,10 @@ if __name__ == "__main__":
 
         LetterBranch.set_letter_tree(letter_tree)
         print("Construct tree")
-        anagrams = construct_word_tree_start(word_tree)
+        construct_word_tree_start(word_tree)
 
-        anagrams_search = []
-        for word in word_tree.children:
-            print("Searching in: ", str(word))
-            anagrams_search = anagrams_search + search_solved_anagrams(str(word), word)
-
-        print(len(anagrams_search))
-
-        for ana in anagrams_search:
-            print(ana)
         print("Search tree")
+        anagrams = search_solved_anagrams_start(word_tree)
 
         elapsed = timeit.default_timer() - start_time # Time
         print('time --> ', elapsed)
