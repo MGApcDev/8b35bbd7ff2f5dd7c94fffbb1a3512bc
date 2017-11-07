@@ -36,6 +36,7 @@ class WordBranch(object):
         # Remove last char --> ' '
         return output_str[:-1]
 
+class WordBranchUtils(object):
     hash_to_branch = {}
     def get_word_tree_root(phrase_len, phrase_dict, words):
         '''Construct the root object of the WordBranch tree.

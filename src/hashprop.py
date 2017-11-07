@@ -39,7 +39,7 @@ class HashProp(object):
         hash_obj = HashProp.get_hash_obj()
 
         if hash_obj.algo == "md5":
-            return (hashlib.md5(candidate.encode())).hexdigest()
+            return (hashlib.md5(input_str.encode())).hexdigest()
         elif hash_obj.algo == "sha1":
             return None
         elif hash_obj.algo == "sha256":

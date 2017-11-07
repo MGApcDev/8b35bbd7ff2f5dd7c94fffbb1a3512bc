@@ -7,6 +7,7 @@ from collections import deque
 import utils
 from letterbranch import LetterBranch
 from wordbranch import WordBranch
+from wordbranch import WordBranchUtils
 from hashprop import HashProp
 # from guppy import hpy
 
@@ -39,7 +40,7 @@ def add_hash(remain_dict, word_branch):
     Returns
         (bool) Return True if the remain_dict was a new entry in the dictionary.
     '''
-    hash_to_branch = WordBranch.get_hash_to_branch()
+    hash_to_branch = WordBranchUtils.get_hash_to_branch()
 
     dict_str = utils.dict_to_str(remain_dict)
     if dict_str in hash_to_branch:
@@ -62,27 +63,25 @@ def construct_word_tree_start(word_branch):
     for child in word_branch.children:
         construct_word_tree(child, child.letter_branch.remain_dict)
 
-def construct_word_tree(word_branch, phrase_dict, level = 1):
+def construct_word_tree(word_branch, phrase_dict):
     '''Recursive function to construct WordBranch tree.
     Args
         word_branch (WordBranch)    The root of WordBranch tree.
         phrase_dict ({char => int}) The remaining letters of the phrase from this point in the tree.
-        level       (int)           The level depth of WordBranch tree.
     '''
     copy_dict = dict(phrase_dict)
 
     if add_hash(copy_dict, word_branch):
         letter_tree = LetterBranch.get_letter_tree()
-        search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, level)
+        search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char)
 
-def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
+def search_letter_tree(origin, letter_branch, remain_dict, remain_char):
     '''Recursive function to search for valid words from this point in the tree.
     Args
         origin        (WordBranch)    The origin WordBranch we're doing the recursive search from
         letter_branch (LetterBranch)  The current LetterBranch we're looking at.
         remain_dict   ({char => int}) The remaining letters of the phrase from this point in the search.
         remain_char   (int)           Count of the remaining letters in the remain_dict.
-        level         (int)           The level depth of WordBranch tree.
     '''
     remain_char_copy = None
     remain_dict_copy = None
@@ -101,7 +100,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
         remain_dict_copy = dict(remain_dict)
         remain_dict_copy[char] -= 1
 
-        search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, level)
+        search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy)
 
     # Free up memory.
     remain_char_copy = None
@@ -112,7 +111,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
         if remain_char == 0:
             mark_path(leaf)
         else:
-            construct_word_tree(leaf, remain_dict, level + 1)
+            construct_word_tree(leaf, remain_dict)
 
 def search_solved_anagrams_start(word_tree):
     anagrams = []
@@ -123,10 +122,10 @@ def search_solved_anagrams_start(word_tree):
 
     return anagrams
 
-def search_solved_anagrams(anagram_str, wb_up, level = 1):
+def search_solved_anagrams(anagram_str, wb_up, level = 2):
     anagrams = []
 
-    if level > 4:
+    if level > 3:
         return [], True
 
     if wb_up.valid_children == None:
@@ -161,7 +160,7 @@ if __name__ == "__main__":
 
         letter_tree, words = LetterBranch.parse_words(phrase_dict, wordlist_filename)
 
-        word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+        word_tree = WordBranchUtils.get_word_tree_root(phrase_len, phrase_dict, words)
 
         LetterBranch.set_letter_tree(letter_tree)
         print("Construct tree")
