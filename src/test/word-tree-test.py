@@ -41,24 +41,18 @@ def test_anagram_solutions_3():
     # assert len(anagrams) == 6
     # assert len(anagrams) == 100
 
-    anagrams_search = []
-    for word in word_tree.children:
-        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word, word_tree, [])
+    # anagrams_search = []
+    # for word in word_tree.children:
+    #     anagrams_search = anagrams_search + search_solved_anagrams(str(word), word)
+    #
+    # for ana in anagrams_search:
+    #     print(ana)
+    #
+    # assert len(anagrams_search) == 6
 
-
-    # print(str(word_tree.children[0].letter_branch))
-    # print(str(word_tree.children[1].letter_branch))
-    # print(str(word_tree.children[2].letter_branch))
-    # print(str(word_tree.children[3].letter_branch))
-    # print(str(word_tree.children[4].letter_branch))
-
-    # anagrams_search = anagrams_search + search_solved_anagrams("and", word_tree.children[0], word_tree, [])
-    # anagrams_search = anagrams_search + search_solved_anagrams("groves", word_tree.children[1], word_tree, [])
-    # anagrams_search = anagrams_search + search_solved_anagrams("lamas", word_tree.children[2], word_tree, [])
-    for ana in anagrams_search:
-        print(ana)
-
-    assert len(anagrams_search) == 6
+    level_anagram = search_solved_words(word_tree)
+    print(len(level_anagram))
+    assert len(level_anagram) == 6
 
 def test_anagram_solutions_4():
     HashProp.set_hash_obj(HashProp("plain", "data/sample-to-find-4.txt"))
@@ -82,7 +76,7 @@ def test_anagram_solutions_4():
 
     anagrams_search = []
     for word in word_tree.children:
-        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word, word_tree, [])
+        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word)
 
     print(len(anagrams_search))
 
@@ -90,6 +84,11 @@ def test_anagram_solutions_4():
         print(ana)
 
     assert len(anagrams_search) == 24
+
+    level_anagram = search_solved_words(word_tree)
+    print(len(level_anagram))
+    assert len(level_anagram) == 24
+
 
 
 def test_anagram_solutions_dup():
@@ -107,7 +106,7 @@ def test_anagram_solutions_dup():
 
     anagrams_search = []
     for word in word_tree.children:
-        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word, word_tree, [])
+        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word)
 
     print(len(anagrams_search))
 
@@ -115,6 +114,10 @@ def test_anagram_solutions_dup():
         print(ana)
 
     assert len(anagrams_search) == 12
+
+    level_anagram = search_solved_words(word_tree)
+    print(len(level_anagram))
+    assert len(level_anagram) == 12
 
 def test_complex_branching_3():
     HashProp.set_hash_obj(HashProp("plain", "data/sample2-to-find-3.txt"))
@@ -131,7 +134,7 @@ def test_complex_branching_3():
 
     anagrams_search = []
     for word in word_tree.children:
-        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word, word_tree, [])
+        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word)
 
     print(len(anagrams_search))
 
@@ -139,6 +142,10 @@ def test_complex_branching_3():
         print(ana)
 
     assert len(anagrams_search) == 7
+
+    level_anagram = search_solved_words(word_tree)
+    print(len(level_anagram))
+    assert len(level_anagram) == 7
 
 def test_complex_branching_4():
     HashProp.set_hash_obj(HashProp("plain", "data/sample2-to-find-4.txt"))
@@ -155,11 +162,15 @@ def test_complex_branching_4():
 
     anagrams_search = []
     for word in word_tree.children:
-        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word, word_tree, [])
+        anagrams_search = anagrams_search + search_solved_anagrams(str(word), word)
 
     print(len(anagrams_search))
 
     for ana in anagrams_search:
         print(ana)
 
-    assert len(anagrams_search) == 7
+    assert len(anagrams_search) == 28
+
+    level_anagram = search_solved_words(word_tree)
+    print(len(level_anagram))
+    assert len(level_anagram) == 28

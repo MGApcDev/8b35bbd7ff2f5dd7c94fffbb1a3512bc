@@ -2,6 +2,7 @@
 import sys
 import timeit
 import hashlib
+from collections import deque
 
 import utils
 from letterbranch import LetterBranch
@@ -68,7 +69,7 @@ def valid_candidates(candidate):
 
     return solutions
 
-def add_hash(remain_dict, word_branch):
+def add_hash(remain_dict, word_branch, debug):
     '''Get a unique representation of remain_dict and add reference WordBranch.
     Args
         remain_dict ({char => int}) The remaining letters of the phrase from this point in the tree.
@@ -81,54 +82,97 @@ def add_hash(remain_dict, word_branch):
     dict_str = utils.dict_to_str(remain_dict)
     if dict_str in hash_to_branch:
         wb = hash_to_branch[dict_str]
-        # print('Found -->', str(word_branch), '{w. remain:', dict_str, "} - ", id(wb))
+        if debug:
+            print('Found -->', str(word_branch), '{w. remain:', dict_str, "} - ", id(wb), "as", str(wb))
         if wb.valid_children != None and len(wb.valid_children) > 0:
 
             mark_path(word_branch)
-            if word_branch.valid_children == None:
-                word_branch.valid_children = {}
-            for bid, child in wb.valid_children.items():
-                # print("------", str(child.letter_branch))
-                word_branch.valid_children[bid] = child
+            word_branch.valid_children = wb.valid_children
+            # if word_branch.valid_children == None:
+            #     word_branch.valid_children = {}
+            # for bid, child in wb.valid_children.items():
+            #     # print("------", str(child.letter_branch))
+            #     word_branch.valid_children[bid] = child
 
         return False, []
 
     else:
-        # print("Adding -->", str(word_branch), '{w. remain:', dict_str, "} - ", id(word_branch))
+        if debug:
+            print("Adding -->", str(word_branch), '{w. remain:', dict_str, "} - ", id(word_branch))
         hash_to_branch[dict_str] = word_branch
         return True, []
 
-def search_solved_anagrams(anagram_str, wb_up, origin, visited_branches):
+def search_solved_words(word_tree):
+    anagrams = []
+    queue = deque()
+
+    for word in word_tree.children:
+        queue.append((str(word), word))
+
+    while len(queue) > 0:
+        anagram_str, word_branch = queue.popleft()
+        if not word_branch.valid_children == None:
+            for hashcode, child_branch in word_branch.valid_children.items():
+                new_anagram_str = anagram_str + ' ' + str(child_branch.letter_branch)
+                if child_branch.remain_char == 0:
+                    if valid_candidate(new_anagram_str):
+                        print((hashlib.md5(new_anagram_str.encode())).hexdigest()," --> " , new_anagram_str)
+                        anagrams.append(new_anagram_str)
+                else:
+                    queue.append((new_anagram_str, child_branch))
+
+    return anagrams
+
+def search_solved_anagrams(anagram_str, wb_up, level = 1):
     anagrams = []
 
-    if wb_up.valid_children == None:
-        # print("building:", anagram_str, " child: 0, me: " , id(wb_up))
+    if level > 3:
         return []
-    # else:
-    #     print("building:", anagram_str, " child: ", len(wb_up.valid_children))
+
+    if wb_up.valid_children == None:
+        return []
 
     for hashcode, word_branch in wb_up.valid_children.items():
         new_anagram_str = anagram_str + ' ' + str(word_branch.letter_branch)
-        visited_branches.append(word_branch)
         if word_branch.remain_char == 0:
             if valid_candidate(new_anagram_str):
-                mark_path(origin)
-
-                for index, visited_branch in enumerate(visited_branches):
-                    if index == 0:
-                        mark_branch(origin, visited_branch)
-                        # print("mark origin..", len(visited_branches), "from: ", str(origin.letter_branch),"to: ", str(visited_branch.letter_branch))
-                    else:
-                        # print("mark ", len(visited_branches), "from: ", str(visited_branches[index - 1].letter_branch),"to: ", str(visited_branch.letter_branch))
-                        mark_branch(visited_branches[index - 1], visited_branch)
-                # print("---- LEAF SOLUTION ---")
-                # print("Origin path: ", str(word_branch))
-                # print((hashlib.md5(new_anagram_str.encode())).hexdigest()," --> " , new_anagram_str)
+                print((hashlib.md5(new_anagram_str.encode())).hexdigest()," --> " , new_anagram_str)
                 return [new_anagram_str]
         else:
-            anagrams = anagrams + search_solved_anagrams(new_anagram_str, word_branch, origin, visited_branches)
+            anagrams = anagrams + search_solved_anagrams(new_anagram_str, word_branch, level + 1)
 
     return anagrams
+
+
+    # anagrams = []
+    #
+    # if wb_up.valid_children == None:
+    #     # print("building:", anagram_str, " child: 0, me: " , id(wb_up))
+    #     return []
+    # # else:
+    #     # print("building:", anagram_str, " child: ", len(wb_up.valid_children))
+    #
+    # for hashcode, word_branch in wb_up.valid_children.items():
+    #     new_anagram_str = anagram_str + ' ' + str(word_branch.letter_branch)
+    #     if word_branch.remain_char == 0:
+    #         if valid_candidate(new_anagram_str):
+    #             # mark_path(origin)
+    #             #
+    #             # for index, visited_branch in enumerate(visited_branches):
+    #             #     if index == 0:
+    #             #         mark_branch(origin, visited_branch)
+    #             #         # print("mark origin..", len(visited_branches), "from: ", str(origin.letter_branch),"to: ", str(visited_branch.letter_branch))
+    #             #     else:
+    #             #         # print("mark ", len(visited_branches), "from: ", str(visited_branches[index - 1].letter_branch),"to: ", str(visited_branch.letter_branch))
+    #             #         mark_branch(visited_branches[index - 1], visited_branch)
+    #             # print("---- LEAF SOLUTION ---")
+    #             # print("Origin path: ", str(word_branch))
+    #             print((hashlib.md5(new_anagram_str.encode())).hexdigest()," --> " , new_anagram_str)
+    #             return [new_anagram_str]
+    #     else:
+    #         anagrams = anagrams + search_solved_anagrams(new_anagram_str, word_branch, debug)
+    #
+    # return anagrams
 
 def construct_word_tree_start(word_branch):
     '''Starting level of WordBranch tree to construct tree.
@@ -139,7 +183,7 @@ def construct_word_tree_start(word_branch):
 
     count = 0
     for child in word_branch.children:
-        print('Working on --> ', str(child.letter_branch)) # DEBUGthis
+        # print('Working on --> ', str(child.letter_branch)) # DEBUGthis
         # if add_hash(child.letter_branch.remain_dict, child):
 
         anagrams = anagrams + construct_word_tree(child, child.letter_branch.remain_dict, 1)
@@ -147,7 +191,7 @@ def construct_word_tree_start(word_branch):
 
     return anagrams
 
-def construct_word_tree(word_branch, phrase_dict, level):
+def construct_word_tree(word_branch, phrase_dict, level, debug = False):
     '''Recursive function to construct WordBranch tree.
     Args
         word_branch (WordBranch)    The root of WordBranch tree.
@@ -155,28 +199,30 @@ def construct_word_tree(word_branch, phrase_dict, level):
         level       (int)           The level depth of WordBranch tree.
     '''
 
-    # temp = ''
-    # for index in range(level):
-    #     temp += '--'
-    # print(level, temp + '-->', str(word_branch.letter_branch))
+    if debug:
+        temp = ''
+        for index in range(level):
+            temp += '--'
+        print(level, temp + '-->', str(word_branch.letter_branch))
+
     anagrams = []
 
-    if level > 5:
-        return []
+    # if level > 4:
+    #     return []
 
     copy_dict = dict(phrase_dict)
-    state, stored_anagrams = add_hash(copy_dict, word_branch)
+    state, stored_anagrams = add_hash(copy_dict, word_branch, debug)
     anagrams = anagrams + stored_anagrams
 
     if state:
         letter_tree = LetterBranch.get_letter_tree()
-        anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, level)
+        anagrams = anagrams + search_letter_tree(word_branch, letter_tree, copy_dict, word_branch.remain_char, level, debug)
     # else:
     #     print('  ' + temp + '-->', level , '-', str(word_branch.letter_branch))
 
     return anagrams
 
-def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
+def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level, debug):
     '''Recursive function to search for valid words from this point in the tree.
     Args
         origin        (WordBranch)    The origin WordBranch we're doing the recursive search from
@@ -203,7 +249,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
         remain_dict_copy = dict(remain_dict)
         remain_dict_copy[char] -= 1
 
-        anagrams = anagrams + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, level)
+        anagrams = anagrams + search_letter_tree(origin, letter_branch.children[char], remain_dict_copy, remain_char_copy, level, debug)
 
     # Free up memory.
     remain_char_copy = None
@@ -221,7 +267,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char, level):
 
             # anagrams = anagrams + solutions
         else:
-            anagrams = anagrams + construct_word_tree(leaf, remain_dict, level + 1)
+            anagrams = anagrams + construct_word_tree(leaf, remain_dict, level + 1, debug)
 
     return anagrams
 
@@ -245,17 +291,21 @@ if __name__ == "__main__":
         word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
 
         LetterBranch.set_letter_tree(letter_tree)
+        print("Construct tree")
         anagrams = construct_word_tree_start(word_tree)
 
         anagrams_search = []
         for word in word_tree.children:
             print("Searching in: ", str(word))
-            anagrams_search = anagrams_search + search_solved_anagrams(str(word), word, word_tree, [])
+            anagrams_search = anagrams_search + search_solved_anagrams(str(word), word)
 
         print(len(anagrams_search))
 
         for ana in anagrams_search:
             print(ana)
+        print("Search tree")
+
+        # search_solved_words(word_tree)
 
 
         # print("---")
