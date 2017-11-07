@@ -1,3 +1,5 @@
+import hashlib
+
 class HashProp(object):
     """Hash object to keep information of the hashes to find.
     Attributes:
@@ -6,34 +8,48 @@ class HashProp(object):
     """
     def __init__(self,  hash_algo, hash_filename):
         self.algo = hash_algo.lower() # Lowercase algorithm
-        self.hashes = self.parse_hashes(hash_filename)
+        self.hashes, self.count = self.parse_hashes(hash_filename)
 
     def parse_hashes(self, hash_filename):
         hashes = {}
+        hash_count = 0
         for line in open(hash_filename):
-            hashes[line[:-1]] = True
+            line = line.rstrip()
+            if len(line) == 0: # Skip empty lines
+                continue
+            if line in hashes: # Skip duplicate hashes
+                continue
+            hashes[line] = False
+            hash_count += 1
 
-        return hashes
+        return hashes, hash_count
 
     def valid_candidate(candidate):
         hash_obj = HashProp.get_hash_obj()
-        hash_algo = hash_obj.algo
 
-        if hash_algo == "md5":
-            local_hash = (hashlib.md5(candidate.encode())).hexdigest()
-            if (local_hash in hash_obj.hashes):
-                return True
-        elif hash_algo == 'sha1':
-            pass
-        elif hash_algo == "sha256":
-            pass
-        elif hash_algo == 'sha512':
-            pass
-        elif hash_algo == 'plain':
-            if (candidate in hash_obj.hashes):
-                return True
+        local_hash = HashProp.get_hash_str(candidate)
+        if (local_hash in hash_obj.hashes):
+            hash_obj.hashes[local_hash] = True
+            hash_obj.count -= 1
+            return True
 
         return False
+
+    def get_hash_str(input_str):
+        hash_obj = HashProp.get_hash_obj()
+
+        if hash_obj.algo == "md5":
+            return (hashlib.md5(candidate.encode())).hexdigest()
+        elif hash_obj.algo == "sha1":
+            return None
+        elif hash_obj.algo == "sha256":
+            return None
+        elif hash_obj.algo == "sha512":
+            return None
+        elif hash_obj.algo == "plain":
+            return input_str
+
+        return None
 
     # Global hash object to use.
     hash_obj = None

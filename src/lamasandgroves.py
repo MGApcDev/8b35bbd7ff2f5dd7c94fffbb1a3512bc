@@ -118,29 +118,31 @@ def search_solved_anagrams_start(word_tree):
     anagrams = []
     for word in word_tree.children:
         print("Searching in: ", str(word))
-        anagrams = anagrams + search_solved_anagrams(str(word), word)
+        new_anagrams, state = search_solved_anagrams(str(word), word)
+        anagrams = anagrams + new_anagrams
 
     return anagrams
 
 def search_solved_anagrams(anagram_str, wb_up, level = 1):
     anagrams = []
 
-    if level > 10:
-        return []
+    if level > 4:
+        return [], True
 
     if wb_up.valid_children == None:
-        return []
+        return [], True
 
     for word_branch in wb_up.valid_children:
         new_anagram_str = anagram_str + ' ' + str(word_branch.letter_branch)
         if word_branch.remain_char == 0:
             if HashProp.valid_candidate(new_anagram_str):
-                print((hashlib.md5(new_anagram_str.encode())).hexdigest()," --> " , new_anagram_str)
-                return [new_anagram_str]
+                print(HashProp.get_hash_str(new_anagram_str)," --> " , new_anagram_str)
+                anagrams.append(new_anagram_str)
         else:
-            anagrams = anagrams + search_solved_anagrams(new_anagram_str, word_branch, level + 1)
+            new_anagrams, state = search_solved_anagrams(new_anagram_str, word_branch, level + 1)
+            anagrams = anagrams + new_anagrams
 
-    return anagrams
+    return anagrams, True
 
 '''Run'''
 if __name__ == "__main__":
