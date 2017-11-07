@@ -74,5 +74,23 @@ _3. Terminate when hashes are found_
 
 _4. Solve anagrams in levels_
 - Once the AST of word combinations are constructed, we look for the solutions one level at a time, due to the increased likelyhood of the phrase we're looking for contains words longer than 1 letter. We would use a BFS algortihm to find solutions, but the implementation has some problems when it comes to space effecientcy when we need to store a queue with elements equal to the width of the tree.
+- We handle this by finding solutions for level 1, then solutions for level 1 + 2, then solutions for 1 + 2 +...+ k. This approach is not optimal, but due to the performance gains from removing dubplicate subproblems, we still save time overall.
+
+# Test
+Instance:
+Phrase len: xx
+Words in dictonary: xx.xxx
+
+Running time:
+
+Without removing subproblems 
+
+3-word combinations
+- xxxs simple solution
+- xxxs w. remove subproblems
+
+4-word combinations
+- xx.000s simple solution
+- x.000s w. remove subproblems
 
 <img src="https://i.imgur.com/bCyFtQG.gif" height="75">
