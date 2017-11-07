@@ -26,8 +26,8 @@ args {
     0 =>           lamasandgroves.py,
     1 => str:      phrase to find anagrams for,
     2 => filename: file of words that could be in the anagram,
-    3 => str:      hash algorithm (md5, sha1, sha256, sha512),
-    4 => filename: file of hashes we should looking for
+    3 => str:      hash algorithm (md5, sha1, sha256, sha512, plain),
+    4 => filename: file of hashes we should look for
 }
 ```
 
@@ -69,9 +69,12 @@ _1. Avoid computing branches that has the same subproblem_
 
 _2. Solve hashes as we go_
 - Using a dictionary of 99.000 words a small piece of text like "anagram" ends up having xx.xxx solutions
-- With this many solutions, either we have a lot of IO time or we use a lot of resources to keep all solutions in memory. Therefore we compute the hash of each candidate and check if it's one of the hashes we're looking for before we return the solution.
+- With this many solutions, either we have a lot of IO time or we use a lot of resources to keep all solutions in memory. Therefore we compute the hash of each candidate and check if it's one of the hashes we're looking for before we return the solutions.
 
 _3. Terminate when hashes are found_
 - When all solutions are found we might still have anagrams we haven't check. This gives no extra value and we terminate to recursive loop.
+
+_4. Solve anagrams in levels_
+Once the AST of word combinations are constructed, we look for the solutions one level at a time, due to the increased likelyhood of the phrase we're looking for contains words longer than 1 letter. We would use a BFS algortihm to find solutions, but the implementation has some problems when it comes to space effecientcy when we need to store a queue with elements equal to the width of the tree.
 
 <img src="https://i.imgur.com/bCyFtQG.gif" height="75">
