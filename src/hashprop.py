@@ -18,6 +18,26 @@ class HashProp(object):
 
         return hashes
 
+    def valid_candidate(candidate):
+        hash_obj = HashProp.get_hash_obj()
+        hash_algo = hash_obj.algo
+
+        if hash_algo == "md5":
+            local_hash = (hashlib.md5(candidate.encode())).hexdigest()
+            if (local_hash in hash_obj.hashes):
+                return True
+        elif hash_algo == 'sha1':
+            pass
+        elif hash_algo == "sha256":
+            pass
+        elif hash_algo == 'sha512':
+            pass
+        elif hash_algo == 'plain':
+            if (candidate in hash_obj.hashes):
+                return True
+
+        return False
+
     # Global hash object to use.
     hash_obj = None
 
