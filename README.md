@@ -77,20 +77,15 @@ _4. Solve anagrams in levels_
 - We handle this by finding solutions for level 1, then solutions for level 1 + 2, then solutions for 1 + 2 +...+ k. This approach is not optimal, but due to the performance gains from removing dubplicate subproblems, we still save time overall.
 
 # Test
-Instance:
-Phrase len: xx
-Words in dictonary: xx.xxx
 
-Running time:
+Running time on instance: ```pharse length xx, valid words after parsing 1.xxx```
 
-Without removing subproblems 
+| Description | simple | w. subproblem handling |
+| --- | --- | --- |
+| 2-word combinations | s | s |
+| 3-word combinations | s | s |
+| 4-word combinations | s | s |
+| 5-word combinations | unknown | unknown |
 
-3-word combinations
-- xxxs simple solution
-- xxxs w. remove subproblems
-
-4-word combinations
-- xx.000s simple solution
-- x.000s w. remove subproblems
 
 <img src="https://i.imgur.com/bCyFtQG.gif" height="75">
