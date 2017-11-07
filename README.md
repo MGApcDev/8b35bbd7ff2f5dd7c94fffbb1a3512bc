@@ -62,10 +62,8 @@ _1. Avoid computing branches that has the same subproblem_
 
 - We avoid this by creating a representation for the remaining characters and make a table for 
 ```{dict_str => WordBranch}```
-- This branch will contain a list of other branches that have the same subproblem.
-
+- All branches with the same subproblem will therefore reference a single WordBranch
 - Looking at a example of 1.100 words, 35% of them are permutations of other words in the list, meaning we can skip those computations on every level.
-
 
 _2. Solve hashes as we go_
 - Using a dictionary of 99.000 words a small piece of text like "anagram" ends up having xx.xxx solutions
