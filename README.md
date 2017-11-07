@@ -75,6 +75,6 @@ _3. Terminate when hashes are found_
 - When all solutions are found we might still have anagrams we haven't check. This gives no extra value and we terminate to recursive loop.
 
 _4. Solve anagrams in levels_
-Once the AST of word combinations are constructed, we look for the solutions one level at a time, due to the increased likelyhood of the phrase we're looking for contains words longer than 1 letter. We would use a BFS algortihm to find solutions, but the implementation has some problems when it comes to space effecientcy when we need to store a queue with elements equal to the width of the tree.
+- Once the AST of word combinations are constructed, we look for the solutions one level at a time, due to the increased likelyhood of the phrase we're looking for contains words longer than 1 letter. We would use a BFS algortihm to find solutions, but the implementation has some problems when it comes to space effecientcy when we need to store a queue with elements equal to the width of the tree.
 
 <img src="https://i.imgur.com/bCyFtQG.gif" height="75">
