@@ -7,28 +7,37 @@ from collections import deque
 import utils
 from letterbranch import LetterBranch
 from wordbranch import WordBranch
-from wordbranch import WordBranchUtils
 from hashprop import HashProp
 # from guppy import hpy
 
 '''Functions'''
 
 def mark_branch(parent, child):
+    '''Add a path from one WordBranch 'parent' to another WordBranch 'child'.
+    Args
+        parent (WordBranch) The branch to add reference to.
+        child  (WordBranch) The branch to be added.
+    Returns
+        (bool) Return True if path was added, otherwise return False.
+    '''
     if parent.valid_children == None:
         parent.valid_children = set()
     if not (child in parent.valid_children):
         parent.valid_children.add(child)
-    else:
-        return False
+        return True
 
-    return True
+    return False
 
 def mark_path(word_branch):
+    '''Mark reference from parent to child from given branch to root.
+    Args
+        word_branch (WordBranch) The child branch to mark from.
+    '''
     pointer = word_branch
     while pointer.origin != None:
         # Mark path of valid children
         if not mark_branch(pointer.origin, pointer):
-            break
+            break # This path is already marked
 
         pointer = pointer.origin
 
@@ -40,7 +49,7 @@ def add_hash(remain_dict, word_branch):
     Returns
         (bool) Return True if the remain_dict was a new entry in the dictionary.
     '''
-    hash_to_branch = WordBranchUtils.get_hash_to_branch()
+    hash_to_branch = WordBranch.get_hash_to_branch()
 
     dict_str = utils.dict_to_str(remain_dict)
     if dict_str in hash_to_branch:
@@ -55,12 +64,12 @@ def add_hash(remain_dict, word_branch):
         hash_to_branch[dict_str] = word_branch
         return True
 
-def construct_word_tree_start(word_branch):
+def construct_word_tree_start(word_tree_root, word_tree_children):
     '''Starting level of WordBranch tree to construct tree.
     Args
-        word_branch (WordBranch)   The root of WordBranch tree.
+        word_branch (WordBranch) The root of WordBranch tree.
     '''
-    for child in word_branch.children:
+    for child in word_tree_children:
         construct_word_tree(child, child.letter_branch.remain_dict)
 
 def construct_word_tree(word_branch, phrase_dict):
@@ -107,31 +116,46 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char):
     remain_dict_copy = None
 
     if letter_branch.is_word:
-        leaf = WordBranch(letter_branch, origin, None, remain_char, None, None)
+        leaf = WordBranch(letter_branch, origin, remain_char, None)
         if remain_char == 0:
             mark_path(leaf)
         else:
             construct_word_tree(leaf, remain_dict)
 
-def search_solved_anagrams_start(word_tree):
+def search_solved_anagrams_start(word_tree, words):
+    '''Do a depth first search from the root of tree.
+    Args
+        word_tree (WordBranch)   The tree root.
+        words     ([WordBranch]) The children of the first level.
+    Returns
+        ([string]) Array of strings that matched the hash object.
+    '''
     anagrams = []
-    for word in word_tree.children:
+    for word in words:
         print("Searching in: ", str(word))
         new_anagrams, state = search_solved_anagrams(str(word), word)
         anagrams = anagrams + new_anagrams
 
     return anagrams
 
-def search_solved_anagrams(anagram_str, wb_up, level = 2):
+def search_solved_anagrams(anagram_str, word_branch, level = 2):
+    '''One level DFS in word tree.
+    Args
+        anagram_str (string)     The current build string.
+        word_branch (WordBranch) The branch we're looking at in DFS.
+        level       (int)        The level in the DFS / tree we're in.
+    Returns
+        ([string]) Array of strings that matched the hash object.
+    '''
     anagrams = []
 
-    if level > 3:
+    if level > 6:
         return [], True
 
-    if wb_up.valid_children == None:
+    if word_branch.valid_children == None:
         return [], True
 
-    for word_branch in wb_up.valid_children:
+    for word_branch in word_branch.valid_children:
         new_anagram_str = anagram_str + ' ' + str(word_branch.letter_branch)
         if word_branch.remain_char == 0:
             if HashProp.valid_candidate(new_anagram_str):
@@ -148,6 +172,7 @@ if __name__ == "__main__":
     args = sys.argv
     if len(args) == 5:
         start_time = timeit.default_timer() # Time
+
         phrase = args[1]
         wordlist_filename = args[2]
         hash_algo = args[3]
@@ -157,19 +182,15 @@ if __name__ == "__main__":
         hash_obj = HashProp(hash_algo, hash_filename)
         HashProp.set_hash_obj(hash_obj)
 
-
         letter_tree, words = LetterBranch.parse_words(phrase_dict, wordlist_filename)
-
-        word_tree = WordBranchUtils.get_word_tree_root(phrase_len, phrase_dict, words)
-
         LetterBranch.set_letter_tree(letter_tree)
-        print("Construct tree")
-        construct_word_tree_start(word_tree)
 
-        print("Search tree")
-        anagrams = search_solved_anagrams_start(word_tree)
+        word_tree, word_tree_children = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+        construct_word_tree_start(word_tree, word_tree_children)
+
+        anagrams = search_solved_anagrams_start(word_tree, word_tree_children)
 
         elapsed = timeit.default_timer() - start_time # Time
-        print('time --> ', elapsed)
+        print('Time elapsed --> ', elapsed, 'seconds')
     else:
         print('Invalid arguments, expecting: "phrase" word_file "hash algo" hashes_file')

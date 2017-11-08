@@ -2,17 +2,15 @@ class WordBranch(object):
     """WordBranch represents a single branch in the tree of all the valid word combinations.
 
     Attributes:
-        letter_branch (LetterBranch)  The reference to the LetterBranch that represents the word.
-        origin        (WordBranch)    The reference to the parent WordBranch.
-        children      ([WordBranch])  Array of children WordBranches.
-        remain_char   (int)           Number of characters remaining in the remain_dict.
+        letter_branch  (LetterBranch)  The reference to the LetterBranch that represents the word.
+        origin         (WordBranch)    The reference to the parent WordBranch.
+        remain_char    (int)           Number of characters remaining in the remain_dict.
+        valid_children ([WordBranch])  Array of WordBranches leading to valid anagrams.
     """
-    def __init__(self,  letter_branch, origin, children, remain_char, references, valid_children):
+    def __init__(self,  letter_branch, origin, remain_char, valid_children):
         self.letter_branch = letter_branch
         self.origin = origin
-        self.children = children
         self.remain_char = remain_char
-        self.references = references
         self.valid_children = valid_children
 
     def __str__(self):
@@ -36,7 +34,6 @@ class WordBranch(object):
         # Remove last char --> ' '
         return output_str[:-1]
 
-class WordBranchUtils(object):
     hash_to_branch = {}
     def get_word_tree_root(phrase_len, phrase_dict, words):
         '''Construct the root object of the WordBranch tree.
@@ -51,12 +48,11 @@ class WordBranchUtils(object):
         hash_to_branch = {} # Reset hash to branch on new tree root
 
         root_children = []
-        root = WordBranch(None, None, [], phrase_len, None, None)
+        root = WordBranch(None, None, phrase_len, None)
         for word in words:
-            root_children.append(WordBranch(word, root, [], phrase_len - len(str(word)), None, None))
+            root_children.append(WordBranch(word, root, phrase_len - len(str(word)), None))
 
-        root.children = root_children
-        return root
+        return root, root_children
 
     def get_hash_to_branch():
         global hash_to_branch

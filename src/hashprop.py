@@ -11,6 +11,14 @@ class HashProp(object):
         self.hashes, self.count = self.parse_hashes(hash_filename)
 
     def parse_hashes(self, hash_filename):
+        '''Parse file of dictionary of hashes.
+        Args
+            self
+            hash_filename (string) The path of the hash file.
+        Returns
+            ({string => bool}) Dictionary of hashes to find and state of whether they are found.
+            (int)              Count of hashes to find.
+        '''
         hashes = {}
         hash_count = 0
         for line in open(hash_filename):
@@ -25,6 +33,12 @@ class HashProp(object):
         return hashes, hash_count
 
     def valid_candidate(candidate):
+        '''Check if string matches one in the hashfile.
+        Args
+            candidate (string) The string to check if matches an entry in the hashfile.
+        Returns
+            (bool) Return True if candidate was in the hashfile.
+        '''
         hash_obj = HashProp.get_hash_obj()
 
         local_hash = HashProp.get_hash_str(candidate)
@@ -36,6 +50,12 @@ class HashProp(object):
         return False
 
     def get_hash_str(input_str):
+        '''Get the hash representation of a string based on the hash object.
+        Args
+            input_str (string) The string to get a hash from.
+        Returns
+
+        '''
         hash_obj = HashProp.get_hash_obj()
 
         if hash_obj.algo == "md5":

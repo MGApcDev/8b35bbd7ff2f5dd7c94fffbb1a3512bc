@@ -11,10 +11,10 @@ def test_search_tree():
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
     LetterBranch.set_letter_tree(letter_tree)
 
-    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    word_tree, word_tree_children = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
 
     # Check I got the 'apple' word_branch.
-    word = word_tree.children[2]
+    word = word_tree_children[2]
     assert str(word.letter_branch) == 'apple'
 
 
@@ -26,8 +26,8 @@ def test_anagram_solutions_3():
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
     LetterBranch.set_letter_tree(letter_tree)
 
-    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
-    construct_word_tree_start(word_tree)
+    word_tree, word_tree_children = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    construct_word_tree_start(word_tree, word_tree_children)
 
     ''' Should produce 6 solutions:
         and - groves - lamas
@@ -37,8 +37,7 @@ def test_anagram_solutions_3():
         lamas - and - groves
         lamas - groves - and
     '''
-
-    anagrams = search_solved_anagrams_start(word_tree)
+    anagrams = search_solved_anagrams_start(word_tree, word_tree_children)
     for anagram in anagrams:
         print(anagram)
 
@@ -54,13 +53,12 @@ def test_anagram_solutions_4():
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
     LetterBranch.set_letter_tree(letter_tree)
 
-    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
-    construct_word_tree_start(word_tree)
+    word_tree, word_tree_children = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    construct_word_tree_start(word_tree, word_tree_children)
 
     ''' Should produce 24 solutions:
     '''
-
-    anagrams = search_solved_anagrams_start(word_tree)
+    anagrams = search_solved_anagrams_start(word_tree, word_tree_children)
     for anagram in anagrams:
         print(anagram)
 
@@ -76,10 +74,10 @@ def test_anagram_solutions_dup():
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample")
     LetterBranch.set_letter_tree(letter_tree)
 
-    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
-    construct_word_tree_start(word_tree)
+    word_tree, word_tree_children = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    construct_word_tree_start(word_tree, word_tree_children)
 
-    anagrams = search_solved_anagrams_start(word_tree)
+    anagrams = search_solved_anagrams_start(word_tree, word_tree_children)
     for anagram in anagrams:
         print(anagram)
 
@@ -95,10 +93,10 @@ def test_complex_branching_3():
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample2")
     LetterBranch.set_letter_tree(letter_tree)
 
-    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
-    construct_word_tree_start(word_tree)
+    word_tree, word_tree_children = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    construct_word_tree_start(word_tree, word_tree_children)
 
-    anagrams = search_solved_anagrams_start(word_tree)
+    anagrams = search_solved_anagrams_start(word_tree, word_tree_children)
     for anagram in anagrams:
         print(anagram)
 
@@ -114,10 +112,10 @@ def test_complex_branching_4():
     letter_tree, words = LetterBranch.parse_words(phrase_dict, "data/sample2")
     LetterBranch.set_letter_tree(letter_tree)
 
-    word_tree = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
-    construct_word_tree_start(word_tree)
+    word_tree, word_tree_children = WordBranch.get_word_tree_root(phrase_len, phrase_dict, words)
+    construct_word_tree_start(word_tree, word_tree_children)
 
-    anagrams = search_solved_anagrams_start(word_tree)
+    anagrams = search_solved_anagrams_start(word_tree, word_tree_children)
     for anagram in anagrams:
         print(anagram)
 

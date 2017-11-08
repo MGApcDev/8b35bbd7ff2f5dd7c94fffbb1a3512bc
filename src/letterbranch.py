@@ -34,17 +34,6 @@ class LetterBranch(object):
 
         return word_str[::-1] # Flip string
 
-    # Global letter tree root to use.
-    letter_tree = None
-
-    def set_letter_tree(letter_branch):
-        global letter_tree
-        letter_tree = letter_branch
-
-    def get_letter_tree():
-        global letter_tree
-        return letter_tree
-
     def parse_words(phrase_dict, filename):
         '''Parse file to abstract syntax tree.
         Args
@@ -110,3 +99,14 @@ class LetterBranch(object):
         pointer.remain_dict = remain_dict
 
         return pointer
+
+    # Global letter tree root to use.
+    letter_tree = None
+
+    def set_letter_tree(letter_branch):
+        global letter_tree
+        letter_tree = letter_branch
+
+    def get_letter_tree():
+        global letter_tree
+        return letter_tree
