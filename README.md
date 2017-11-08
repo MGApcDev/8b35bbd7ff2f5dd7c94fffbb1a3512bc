@@ -78,13 +78,12 @@ _4. Solve anagrams in levels_
 
 # Test
 
-Running time on instance: ```pharse length xx, valid words after parsing 1.xxx```
+Running time on instance: ```pharse length 18, valid words after parsing 1.659```
 
 | Description | simple | w. subproblem handling |
 | --- | --- | --- |
-| 2-word combinations | s | s |
-| 3-word combinations | s | s |
-| 4-word combinations | s | s |
+| 3-word combinations | 463s | 246s |
+| 4-word combinations | 25.153s | 8580s |
 | 5-word combinations | unknown | unknown |
 
 
