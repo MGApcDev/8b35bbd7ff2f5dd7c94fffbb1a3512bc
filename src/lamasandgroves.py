@@ -122,7 +122,7 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char):
         else:
             construct_word_tree(leaf, remain_dict)
 
-def search_solved_anagrams_start(word_tree, words):
+def search_solved_anagrams_start(word_tree, words, max_level = 6):
     '''Do a depth first search from the root of tree.
     Args
         word_tree (WordBranch)   The tree root.
@@ -133,12 +133,15 @@ def search_solved_anagrams_start(word_tree, words):
     anagrams = []
     for word in words:
         print("Searching in: ", str(word))
-        new_anagrams, state = search_solved_anagrams(str(word), word)
+        new_anagrams, state = search_solved_anagrams(str(word), word, max_level)
         anagrams = anagrams + new_anagrams
+
+        if not state:
+            break
 
     return anagrams
 
-def search_solved_anagrams(anagram_str, word_branch, level = 2):
+def search_solved_anagrams(anagram_str, word_branch, max_level, level = 2):
     '''One level DFS in word tree.
     Args
         anagram_str (string)     The current build string.
@@ -148,12 +151,13 @@ def search_solved_anagrams(anagram_str, word_branch, level = 2):
         ([string]) Array of strings that matched the hash object.
     '''
     anagrams = []
+    state = True
 
-    if level > 6:
-        return [], True
+    if level > max_level:
+        return [], state
 
     if word_branch.valid_children == None:
-        return [], True
+        return [], state
 
     for word_branch in word_branch.valid_children:
         new_anagram_str = anagram_str + ' ' + str(word_branch.letter_branch)
@@ -161,11 +165,14 @@ def search_solved_anagrams(anagram_str, word_branch, level = 2):
             if HashProp.valid_candidate(new_anagram_str):
                 print(HashProp.get_hash_str(new_anagram_str)," --> " , new_anagram_str)
                 anagrams.append(new_anagram_str)
+                hash_obj = HashProp.get_hash_obj()
+                if hash_obj.count == 0:
+                    return anagrams, False
         else:
-            new_anagrams, state = search_solved_anagrams(new_anagram_str, word_branch, level + 1)
+            new_anagrams, state = search_solved_anagrams(new_anagram_str, word_branch, max_level, level + 1)
             anagrams = anagrams + new_anagrams
 
-    return anagrams, True
+    return anagrams, state
 
 '''Run'''
 if __name__ == "__main__":
