@@ -122,22 +122,29 @@ def search_letter_tree(origin, letter_branch, remain_dict, remain_char):
         else:
             construct_word_tree(leaf, remain_dict)
 
-def search_solved_anagrams_start(word_tree, words, max_level = 6):
+def search_solved_anagrams_start(word_tree, words, max_level = 2):
     '''Do a depth first search from the root of tree.
     Args
         word_tree (WordBranch)   The tree root.
         words     ([WordBranch]) The children of the first level.
+        max_level (int)          The max depth to search in the tree.
     Returns
         ([string]) Array of strings that matched the hash object.
     '''
     anagrams = []
-    for word in words:
-        print("Searching in: ", str(word))
-        new_anagrams, state = search_solved_anagrams(str(word), word, max_level)
-        anagrams = anagrams + new_anagrams
+    state = 1
 
-        if not state:
+    for word in words:
+        new_anagrams, new_state = search_solved_anagrams(str(word), word, max_level)
+        anagrams = anagrams + new_anagrams
+        if new_state > state:
+            state = new_state
+
+        if state == 3: # Found all hashes
             break
+
+    if state == 2: # Increase max_level to search one level further down
+        anagrams = anagrams + search_solved_anagrams_start(word_tree, words, max_level + 1)
 
     return anagrams
 
@@ -146,18 +153,20 @@ def search_solved_anagrams(anagram_str, word_branch, max_level, level = 2):
     Args
         anagram_str (string)     The current build string.
         word_branch (WordBranch) The branch we're looking at in DFS.
+        max_level (int)          The max depth to search in the tree.
         level       (int)        The level in the DFS / tree we're in.
     Returns
         ([string]) Array of strings that matched the hash object.
+        (int)      State of program {1: continue, 2: continue with increased max_level, 3: done all hashes found}
     '''
     anagrams = []
-    state = True
-
-    if level > max_level:
-        return [], state
+    state = 1
 
     if word_branch.valid_children == None:
         return [], state
+
+    if level > max_level:
+        return [], 2
 
     for word_branch in word_branch.valid_children:
         new_anagram_str = anagram_str + ' ' + str(word_branch.letter_branch)
@@ -167,10 +176,15 @@ def search_solved_anagrams(anagram_str, word_branch, max_level, level = 2):
                 anagrams.append(new_anagram_str)
                 hash_obj = HashProp.get_hash_obj()
                 if hash_obj.count == 0:
-                    return anagrams, False
+                    return anagrams, 3
         else:
-            new_anagrams, state = search_solved_anagrams(new_anagram_str, word_branch, max_level, level + 1)
+            new_anagrams, new_state = search_solved_anagrams(new_anagram_str, word_branch, max_level, level + 1)
             anagrams = anagrams + new_anagrams
+            if new_state > state:
+                state = new_state
+
+            if state == 3: # Terminate search
+                return anagrams, state
 
     return anagrams, state
 
