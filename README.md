@@ -21,7 +21,7 @@ The program will find the hashes in the list and output them with their hash cou
 
 # Basic usage
 ```bash
-$ python src/lamasandgroves.py "some search phrase" some-dictionary.txt "md5" hashes-to-find.txt > anagrams.txt
+$ python src/lamasandgroves.py "some search phrase" some-dictionary.txt "md5" hashes-to-find.txt
 args {
     0 =>           lamasandgroves.py,
     1 => str:      phrase to find anagrams for,
@@ -48,7 +48,7 @@ The program constructs an abstract syntax tree of the given dictonary of words.
 
 To find the anagrams of the words available, we create a tree of all the valid combinations, where each branch represents a word.
 
-For the give phrase ```"an dlamasa pple"```, part of the tree we would produce is this:
+For the given phrase ```"an dlamasa pple"```, part of the tree we would produce is this:
 
 
 <img src="https://i.imgur.com/gSJdExL.png" width="400">
@@ -61,29 +61,29 @@ _1. Avoid computing branches that has the same subproblem_
 <img src="https://i.imgur.com/DlpWHPm.png" width="400">
 
 - We avoid this by creating a representation for the remaining characters and make a table for 
-```{dict_str => WordBranch}```
-- All branches with the same subproblem will therefore reference a single WordBranch
+```{dict_str => WordBranch}```.
+- All branches with the same subproblem will therefore reference a single WordBranch.
 - Looking at a example of 1.100 words, 35% of them are permutations of other words in the list, meaning we can skip those computations on every level.
 
 _2. Solve hashes as we go_
-- Using a dictionary of 99.000 words a small piece of text like "anagram" ends up having xx.xxx solutions
+- Using a dictionary of 99.000 words a small piece of text like "anagram" ends up having 34.668 valid anagrams.
 - With this many solutions, either we have a lot of IO time or we use a lot of resources to keep all solutions in memory. Therefore we compute the hash of each candidate and check if it's one of the hashes we're looking for before we return the solutions.
 
 _3. Terminate when hashes are found_
 - When all solutions are found we might still have anagrams we haven't check. This gives no extra value and we terminate to recursive loop.
 
 _4. Solve anagrams in levels_
-- Once the AST of word combinations are constructed, we look for the solutions one level at a time, due to the increased likelyhood of the phrase we're looking for contains words longer than 1 letter. We would use a BFS algortihm to find solutions, but the implementation has some problems when it comes to space effecientcy when we need to store a queue with elements equal to the width of the tree.
-- We handle this by finding solutions for level 1, then solutions for level 1 + 2, then solutions for 1 + 2 +...+ k. This approach is not optimal, but due to the performance gains from removing dubplicate subproblems, we still save time overall.
+- Once the AST of word combinations are constructed, we look for the solutions one level at a time, due to the increased likelyhood of the phrase we're looking for contains words longer than 1 letter. We would use a BFS algortihm to find solutions, but the implementation has some problems when it comes to space effecientcy, because we need to store a queue with elements equal to the width of the tree.
+- We handle this by finding solutions using DFS for level 1, then solutions for level 1 + 2, then solutions for 1 + 2 +...+ k. This approach is not optimal, but due to the performance gains from removing dubplicate subproblems, we still save time overall.
 
 # Test
 
 Running time on instance: ```pharse length 18, valid words after parsing 1.659```
 
-| Description | simple | w. subproblem handling |
+| Description | simple | w. heuristics |
 | --- | --- | --- |
 | 3-word combinations | 463s | 246s |
-| 4-word combinations | 25.153s | 8580s |
+| 4-word combinations | 25.153s | 8.580s |
 | 5-word combinations | unknown | unknown |
 
 
