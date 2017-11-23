@@ -54,18 +54,18 @@ class HashProp(object):
         Args
             input_str (string) The string to get a hash from.
         Returns
-
+            (string|None) The hashed string if algorithm matches otherwise return None.
         '''
         hash_obj = HashProp.get_hash_obj()
 
         if hash_obj.algo == "md5":
             return (hashlib.md5(input_str.encode())).hexdigest()
         elif hash_obj.algo == "sha1":
-            return None
+            return (hashlib.sha1(input_str.encode())).hexdigest()
         elif hash_obj.algo == "sha256":
-            return None
+            return (hashlib.sha256(input_str.encode())).hexdigest()
         elif hash_obj.algo == "sha512":
-            return None
+            return (hashlib.sha512(input_str.encode())).hexdigest()
         elif hash_obj.algo == "plain":
             return input_str
 
